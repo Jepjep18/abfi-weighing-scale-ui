@@ -66,15 +66,59 @@ export const appRoutes: Route[] = [
 
     // Admin routes
     {
-        path       : '',
-        canActivate: [AuthGuard],
-        canActivateChild: [AuthGuard],
-        component  : LayoutComponent,
-        resolve    : {
-            initialData: InitialDataResolver,
+    path       : '',
+    canActivate: [AuthGuard],
+    canActivateChild: [AuthGuard],
+    component  : LayoutComponent,
+    resolve    : {
+        initialData: InitialDataResolver,
+    },
+    children   : [
+        // Dashboard
+        {
+            path: 'dashboard',
+            loadChildren: () =>
+                import('app/modules/admin/dashboard/dashboard.module').then(
+                    (m) => m.DashboardModule
+                ),
         },
-        children   : [
-            {path: 'example', loadChildren: () => import('app/modules/admin/example/example.module').then(m => m.ExampleModule)},
-        ]
-    }
+
+        // Trip Sheet → Create Production
+        {
+            path: 'trip-sheet/create-production',
+            loadChildren: () =>
+                import(
+                    'app/modules/admin/trip-sheet/trip-sheet.module'
+                ).then((m) => m.TripSheetModule),
+        },
+
+        // Weighing Scale
+        {
+            path: 'weighing-scale',
+            loadChildren: () =>
+                import('app/modules/admin/weighing-scale/weighing-scale.module').then(
+                    (m) => m.WeighingScaleModule
+                ),
+        },
+
+        // Booking
+        {
+            path: 'booking',
+            loadChildren: () =>
+                import('app/modules/admin/booking/booking.module').then(
+                    (m) => m.BookingModule
+                ),
+        },
+
+        // Example
+        {
+            path: 'example',
+            loadChildren: () =>
+                import('app/modules/admin/example/example.module').then(
+                    (m) => m.ExampleModule
+                ),
+        },
+    ],
+}
+
 ];
