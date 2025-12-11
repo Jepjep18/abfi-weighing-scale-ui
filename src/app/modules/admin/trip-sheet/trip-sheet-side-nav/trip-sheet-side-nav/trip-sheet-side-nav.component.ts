@@ -14,6 +14,7 @@ interface Stats {
 })
 export class TripSheetSideNavComponent {
   @Output() close = new EventEmitter<void>();
+  @Output() createProductionClicked = new EventEmitter<void>(); // Renamed to avoid conflict
 
   // Filter states
   selectedStatus = 'all';
@@ -34,10 +35,8 @@ export class TripSheetSideNavComponent {
   }
 
   createProduction(): void {
-    // You could also navigate to a create production page here
     console.log('Create production clicked');
-    // In production, you might want to emit an event:
-    // this.createProductionClicked.emit();
+    this.createProductionClicked.emit(); // Updated to use renamed emitter
   }
 
   handleAction(actionType: string): void {
@@ -72,8 +71,6 @@ export class TripSheetSideNavComponent {
     };
     
     console.log('Filters applied:', filters);
-    // In production, you might want to emit an event:
-    // this.filtersApplied.emit(filters);
   }
 
   clearFilters(): void {
@@ -86,33 +83,27 @@ export class TripSheetSideNavComponent {
 
   // Action handlers
   private handleExport(): void {
-    // Export logic
     console.log('Exporting trip sheets...');
   }
 
   private handlePrint(): void {
-    // Print logic
     console.log('Printing trip sheets...');
     window.print();
   }
 
   private handleShare(): void {
-    // Share logic
     console.log('Sharing trip sheets...');
   }
 
   private handleDuplicate(): void {
-    // Duplicate logic
     console.log('Duplicating selected trip sheets...');
   }
 
   private handleSettings(): void {
-    // Settings logic
     console.log('Opening settings...');
   }
 
   private handleDeleteAll(): void {
-    // Delete all logic with confirmation
     if (confirm('Are you sure you want to clear all trip sheets? This action cannot be undone.')) {
       console.log('Clearing all trip sheets...');
     }

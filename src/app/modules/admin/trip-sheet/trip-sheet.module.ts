@@ -11,6 +11,9 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatRadioModule } from '@angular/material/radio';
+
+import { CreateProductionFormComponent } from './create-production/create-production-form/create-production-form.component';
 
 
 const routes: Routes = [
@@ -23,7 +26,8 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     TripSheetComponent,
-    TripSheetSideNavComponent
+    TripSheetSideNavComponent,
+    CreateProductionFormComponent,
   ],
   imports: [
     CommonModule,
@@ -34,7 +38,9 @@ const routes: Routes = [
     MatDatepickerModule,
     MatInputModule,
     MatSelectModule,
+    MatRadioModule,
     MatNativeDateModule,
+    
     RouterModule.forChild(routes), 
   ]
 })

@@ -7,13 +7,37 @@ import { MatDrawer } from '@angular/material/sidenav';
   styleUrls: ['./trip-sheet.component.scss']
 })
 export class TripSheetComponent {
-  @ViewChild('matDrawer') matDrawer!: MatDrawer;
+  @ViewChild('createProductionDrawer') createProductionDrawer!: MatDrawer;
+  @ViewChild('rightDrawer') rightDrawer!: MatDrawer;
 
-  toggleDrawer(): void {
-    this.matDrawer.toggle();
+  isCreateProductionDrawerOpen = false;
+
+  // Left drawer methods (Create Production Form)
+  openCreateProductionDrawer(): void {
+    this.isCreateProductionDrawerOpen = true;
+    this.createProductionDrawer.open();
+    // Optionally close the right drawer when opening left drawer
+    this.closeRightDrawer();
   }
 
-  closeDrawer(): void {
-    this.matDrawer.close();
+  closeCreateProductionDrawer(): void {
+    this.isCreateProductionDrawerOpen = false;
+    this.createProductionDrawer.close();
+  }
+
+  // Right drawer methods (Side Nav)
+  toggleRightDrawer(): void {
+    this.rightDrawer.toggle();
+  }
+
+  closeRightDrawer(): void {
+    this.rightDrawer.close();
+  }
+
+  // Event handler for production creation
+  onProductionCreated(productionData: any): void {
+    console.log('Production created:', productionData);
+    // Add your logic here to handle the created production
+    // For example: add to list, show success message, refresh data, etc.
   }
 }
