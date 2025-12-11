@@ -1,11 +1,122 @@
-<div class="flex flex-col flex-auto min-w-0">
-
-    <!-- Main -->
-    <div class="flex-auto p-6 sm:p-10">
-
-        <!-- CONTENT GOES HERE -->
-        <div class="h-400 min-h-400 max-h-400 border-2 border-dashed border-gray-300 rounded-2xl"></div>
-
-    </div>
-
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden">
+    <mat-drawer-container class="flex-auto" autosize>
+        <!-- Main content area -->
+        <mat-drawer-content class="overflow-y-auto">
+            <!-- Header with reduced spacing -->
+            <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-6 sm:px-8 pt-6 sm:pt-8 pb-4 bg-default dark:bg-transparent border-b border-gray-300 dark:border-gray-700">
+                <div class="flex-1 min-w-0">
+                    <!-- Breadcrumbs with reduced spacing -->
+                    <div class="mb-1">
+                        <div class="hidden sm:flex flex-wrap items-center font-medium text-sm">
+                            <div>
+                                <a class="whitespace-nowrap text-primary-500 hover:underline">Projects</a>
+                            </div>
+                            <div class="flex items-center ml-1 whitespace-nowrap">
+                                <mat-icon
+                                    class="icon-size-4 text-secondary"
+                                    [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+                                <a class="ml-1 text-primary-500 hover:underline">Weekend Project</a>
+                            </div>
+                            <div class="flex items-center ml-1 whitespace-nowrap">
+                                <mat-icon
+                                    class="icon-size-4 text-secondary"
+                                    [svgIcon]="'heroicons_solid:chevron-right'"></mat-icon>
+                                <span class="ml-1 text-secondary">Overview</span>
+                            </div>
+                        </div>
+                        <div class="flex sm:hidden">
+                            <a
+                                class="inline-flex items-center -ml-1 text-secondary font-medium text-sm"
+                                [routerLink]="'./..'">
+                                <mat-icon
+                                    class="icon-size-4 text-secondary"
+                                    [svgIcon]="'heroicons_solid:chevron-left'"></mat-icon>
+                                <span class="ml-1">Back</span>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Title -->
+                    <div class="mt-1">
+                        <h2 class="text-2xl md:text-3xl font-bold tracking-tight leading-7 sm:leading-9 truncate">
+                            TRIP SHEET
+                        </h2>
+                    </div>
+                </div>
+                <!-- Actions - FIXED BUTTON -->
+                <div class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4">
+                    <button
+                        mat-icon-button
+                        class="!h-10 !w-10 flex items-center justify-center"
+                        (click)="matDrawer.toggle()">
+                        <mat-icon class="!w-6 !h-6">menu</mat-icon>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Main content below header -->
+            <div class="p-6 sm:p-8">
+                <!-- Your main content goes here -->
+                <div class="space-y-6">
+                    <!-- Example content -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h3 class="text-lg font-medium mb-4">Content Section</h3>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            This is your main content area. Add your trip sheet content here.
+                        </p>
+                    </div>
+                    
+                    <!-- More content to demonstrate scrolling -->
+                    <div class="space-y-4">
+                        <div *ngFor="let item of [1,2,3,4,5,6,7,8,9,10]" 
+                             class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <h4 class="font-medium">Item {{item}}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Content for item {{item}}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </mat-drawer-content>
+        
+        <!-- Side drawer -->
+        <mat-drawer
+            class="w-72 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700"
+            [autoFocus]="false"
+            [mode]="'side'"
+            [position]="'end'"
+            [opened]="false"
+            #matDrawer>
+            <div class="p-6 h-full overflow-y-auto">
+                <!-- Drawer content -->
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-medium">Side Panel</h3>
+                    <button
+                        mat-icon-button
+                        class="-mr-2"
+                        (click)="matDrawer.toggle()">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <p class="text-gray-600 dark:text-gray-300">
+                        This is your drawer/sidebar content. You can add filters, details, or other controls here.
+                    </p>
+                    
+                    <!-- Example drawer items -->
+                    <div class="space-y-3">
+                        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                            <div class="font-medium">Filter 1</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">Filter description</div>
+                        </div>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
+                            <div class="font-medium">Filter 2</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">Filter description</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </mat-drawer>
+    </mat-drawer-container>
 </div>

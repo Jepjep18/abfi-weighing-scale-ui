@@ -1,15 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
+import { MatDrawer } from '@angular/material/sidenav';
 
 @Component({
   selector: 'app-trip-sheet',
   templateUrl: './trip-sheet.component.html',
   styleUrls: ['./trip-sheet.component.scss']
 })
-export class TripSheetComponent implements OnInit {
+export class TripSheetComponent {
+  @ViewChild('matDrawer') matDrawer!: MatDrawer;
 
-  constructor() { }
-
-  ngOnInit(): void {
+  toggleDrawer(): void {
+    this.matDrawer.toggle();
   }
-
 }
