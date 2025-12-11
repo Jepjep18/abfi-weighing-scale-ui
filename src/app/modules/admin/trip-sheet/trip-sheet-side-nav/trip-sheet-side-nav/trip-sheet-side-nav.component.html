@@ -1,0 +1,211 @@
+<div class="h-full flex flex-col bg-white dark:bg-gray-900">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Trip Sheet Actions</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage and filter your trip sheets</p>
+        </div>
+        <button
+            mat-icon-button
+            class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors -mr-2"
+            (click)="closeDrawer()"
+            aria-label="Close panel">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto">
+        <div class="p-6 space-y-6">
+            <!-- Quick Actions Section -->
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Quick Actions</h4>
+                
+                <!-- Create Production Button -->
+                <button
+                    mat-raised-button
+                    color="primary"
+                    class="w-full flex items-center justify-center py-3 px-4 rounded-lg mb-3 shadow-sm hover:shadow transition-shadow"
+                    (click)="createProduction()">
+                    <mat-icon class="mr-2 !text-xl">add_circle</mat-icon>
+                    <span class="font-medium text-sm">Create Production</span>
+                </button>
+
+                <!-- Action Buttons Grid -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button
+                        mat-stroked-button
+                        class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all"
+                        (click)="handleAction('export')">
+                        <mat-icon class="!text-xl text-blue-600 dark:text-blue-400 mb-1.5">download</mat-icon>
+                        <span class="font-medium text-xs text-gray-700 dark:text-gray-300">Export</span>
+                    </button>
+                    
+                    <button
+                        mat-stroked-button
+                        class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950 transition-all"
+                        (click)="handleAction('print')">
+                        <mat-icon class="!text-xl text-green-600 dark:text-green-400 mb-1.5">print</mat-icon>
+                        <span class="font-medium text-xs text-gray-700 dark:text-gray-300">Print</span>
+                    </button>
+                    
+                    <button
+                        mat-stroked-button
+                        class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950 transition-all"
+                        (click)="handleAction('share')">
+                        <mat-icon class="!text-xl text-purple-600 dark:text-purple-400 mb-1.5">ios_share</mat-icon>
+                        <span class="font-medium text-xs text-gray-700 dark:text-gray-300">Share</span>
+                    </button>
+                    
+                    <button
+                        mat-stroked-button
+                        class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all"
+                        (click)="handleAction('duplicate')">
+                        <mat-icon class="!text-xl text-amber-600 dark:text-amber-400 mb-1.5">content_copy</mat-icon>
+                        <span class="font-medium text-xs text-gray-700 dark:text-gray-300">Duplicate</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+            <!-- Filters Section -->
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Filters</h4>
+                
+                <div class="space-y-3">
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                            Status
+                        </label>
+                        <mat-form-field appearance="outline" class="w-full compact-field">
+                            <mat-select [(ngModel)]="selectedStatus">
+                                <mat-option value="all">All Status</mat-option>
+                                <mat-option value="draft">Draft</mat-option>
+                                <mat-option value="in-progress">In Progress</mat-option>
+                                <mat-option value="completed">Completed</mat-option>
+                                <mat-option value="cancelled">Cancelled</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <!-- Date Range -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                            Date Range
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <mat-form-field appearance="outline" class="compact-field">
+                                <mat-label>Start</mat-label>
+                                <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate">
+                                <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+                                <mat-datepicker #startPicker></mat-datepicker>
+                            </mat-form-field>
+                            
+                            <mat-form-field appearance="outline" class="compact-field">
+                                <mat-label>End</mat-label>
+                                <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate">
+                                <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+                                <mat-datepicker #endPicker></mat-datepicker>
+                            </mat-form-field>
+                        </div>
+                    </div>
+
+                    <!-- Search -->
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                            Search
+                        </label>
+                        <mat-form-field appearance="outline" class="w-full compact-field">
+                            <input matInput [(ngModel)]="searchQuery" placeholder="Keywords, ID, or name">
+                            <mat-icon matPrefix class="!text-lg text-gray-400">search</mat-icon>
+                        </mat-form-field>
+                    </div>
+
+                    <!-- Filter Actions -->
+                    <div class="flex gap-2 pt-1">
+                        <button
+                            mat-raised-button
+                            color="primary"
+                            class="flex-1 !py-2 !text-sm font-medium"
+                            (click)="applyFilters()">
+                            Apply
+                        </button>
+                        <button
+                            mat-stroked-button
+                            class="!py-2 !px-4 !text-sm font-medium"
+                            (click)="clearFilters()">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+            <!-- Statistics Section -->
+            <div>
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Statistics</h4>
+                
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-850 rounded-lg p-4 space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-gray-400"></div>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Total Sheets</span>
+                        </div>
+                        <span class="font-semibold text-sm text-gray-900 dark:text-white">{{stats.total}}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">This Month</span>
+                        </div>
+                        <span class="font-semibold text-sm text-green-600 dark:text-green-400">{{stats.thisMonth}}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">In Progress</span>
+                        </div>
+                        <span class="font-semibold text-sm text-amber-600 dark:text-amber-400">{{stats.inProgress}}</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Completed</span>
+                        </div>
+                        <span class="font-semibold text-sm text-blue-600 dark:text-blue-400">{{stats.completed}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-850">
+        <div class="flex items-center justify-between gap-2">
+            <button
+                mat-button
+                color="warn"
+                class="!text-xs font-medium flex-1"
+                (click)="handleAction('delete-all')">
+                <mat-icon class="!text-base mr-1">delete_sweep</mat-icon>
+                Clear All
+            </button>
+            <button
+                mat-button
+                color="primary"
+                class="!text-xs font-medium flex-1"
+                (click)="handleAction('settings')">
+                <mat-icon class="!text-base mr-1">tune</mat-icon>
+                Settings
+            </button>
+        </div>
+    </div>
+</div>

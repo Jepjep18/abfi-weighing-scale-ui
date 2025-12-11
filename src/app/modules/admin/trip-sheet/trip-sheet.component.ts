@@ -12,4 +12,8 @@ export class TripSheetComponent {
   toggleDrawer(): void {
     this.matDrawer.toggle();
   }
+
+  closeDrawer(): void {
+    this.matDrawer.close();
+  }
 }

@@ -47,7 +47,7 @@
                     <button
                         mat-icon-button
                         class="!h-10 !w-10 flex items-center justify-center"
-                        (click)="matDrawer.toggle()">
+                        (click)="toggleDrawer()">
                         <mat-icon class="!w-6 !h-6">menu</mat-icon>
                     </button>
                 </div>
@@ -88,34 +88,8 @@
             [opened]="false"
             #matDrawer>
             <div class="p-6 h-full overflow-y-auto">
-                <!-- Drawer content -->
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-medium">Side Panel</h3>
-                    <button
-                        mat-icon-button
-                        class="-mr-2"
-                        (click)="matDrawer.toggle()">
-                        <mat-icon>close</mat-icon>
-                    </button>
-                </div>
-                
-                <div class="space-y-4">
-                    <p class="text-gray-600 dark:text-gray-300">
-                        This is your drawer/sidebar content. You can add filters, details, or other controls here.
-                    </p>
-                    
-                    <!-- Example drawer items -->
-                    <div class="space-y-3">
-                        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                            <div class="font-medium">Filter 1</div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">Filter description</div>
-                        </div>
-                        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                            <div class="font-medium">Filter 2</div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">Filter description</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Use the child component -->
+                <app-trip-sheet-side-nav (close)="closeDrawer()"></app-trip-sheet-side-nav>
             </div>
         </mat-drawer>
     </mat-drawer-container>

@@ -5,6 +5,13 @@ import { RouterModule, Routes } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { TripSheetSideNavComponent } from './trip-sheet-side-nav/trip-sheet-side-nav/trip-sheet-side-nav.component';
+import { FormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatNativeDateModule } from '@angular/material/core';
+
 
 const routes: Routes = [
   {
@@ -15,13 +22,19 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [
-    TripSheetComponent
+    TripSheetComponent,
+    TripSheetSideNavComponent
   ],
   imports: [
     CommonModule,
     MatButtonModule,
     MatIconModule,
-    MatSidenavModule, // ← Add this import
+    MatSidenavModule,
+    FormsModule,
+    MatDatepickerModule,
+    MatInputModule,
+    MatSelectModule,
+    MatNativeDateModule,
     RouterModule.forChild(routes), 
   ]
 })
