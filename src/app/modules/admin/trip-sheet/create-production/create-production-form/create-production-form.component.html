@@ -1,129 +1,412 @@
 <div class="h-full flex flex-col bg-white dark:bg-gray-900">
     <!-- Header -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div
+        class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
+    >
         <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Create Production</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Add new production details</p>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Create Production
+            </h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Add new production details
+            </p>
         </div>
         <button
             mat-icon-button
             class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors -mr-2"
             (click)="closeDrawer()"
-            aria-label="Close panel">
+            aria-label="Close panel"
+        >
             <mat-icon>close</mat-icon>
         </button>
     </div>
 
     <!-- Main Content -->
     <div class="flex-1 overflow-y-auto">
-        <div class="p-6 space-y-6">
-            <!-- Production Form -->
-            <form class="space-y-4">
-                <!-- Production Name -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                        Production Name *
-                    </label>
+        <form
+            class="p-6 space-y-6"
+            (ngSubmit)="onSubmit()"
+            #productionForm="ngForm"
+        >
+            <!-- Production Name -->
+            <div>
+                <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                    Production Name *
+                </label>
+                <mat-form-field appearance="outline" class="w-full">
+                    <input
+                        matInput
+                        [(ngModel)]="productionName"
+                        name="productionName"
+                        placeholder="e.g., January Production, Q4 Campaign"
+                        required
+                        class="!text-sm"
+                    />
+                    <mat-icon matPrefix class="!text-lg text-gray-400"
+                        >badge</mat-icon
+                    >
+                    <mat-error
+                        *ngIf="
+                            productionForm.submitted && !productionName.trim()
+                        "
+                    >
+                        Production name is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Total Heads (Read-only, calculated from farms) -->
+            <div>
+                <label
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >
+                    Total Heads
+                </label>
+                <mat-form-field
+                    appearance="outline"
+                    class="w-full"
+                    *ngIf="totalHeads !== null"
+                >
+                    <input
+                        matInput
+                        [value]="totalHeads | number"
+                        readonly
+                        class="!text-sm"
+                    />
+                    <mat-icon matPrefix class="!text-lg text-gray-400"
+                        >numbers</mat-icon
+                    >
+                </mat-form-field>
+                <div
+                    *ngIf="totalHeads === null"
+                    class="text-sm text-gray-500 dark:text-gray-400 italic"
+                >
+                    Total heads will be calculated from farm allocations
+                </div>
+            </div>
+
+            <mat-form-field appearance="outline" class="w-full datetime-field">
+                <mat-icon matPrefix class="!text-lg text-gray-400"
+                    >event</mat-icon
+                >
+
+                <input
+                    matInput
+                    type="datetime-local"
+                    [(ngModel)]="startDateTime"
+                    name="startDateTime"
+                    required
+                    class="!text-sm datetime-input"
+                />
+            </mat-form-field>
+
+            <!-- Farms Selection -->
+            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h4
+                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                    >
+                        Select Farms *
+                    </h4>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ selectedFarms.length }} selected
+                    </span>
+                </div>
+
+                <!-- Farm Search -->
+                <div class="mb-4">
                     <mat-form-field appearance="outline" class="w-full">
-                        <input matInput [(ngModel)]="productionName" 
-                               name="productionName"
-                               placeholder="Enter production name"
-                               required>
-                        <mat-icon matPrefix class="!text-lg text-gray-400">badge</mat-icon>
+                        <input
+                            matInput
+                            [(ngModel)]="searchFarmText"
+                            name="searchFarm"
+                            placeholder="Search farms by name..."
+                            class="!text-sm"
+                        />
+                        <mat-icon matPrefix class="!text-lg text-gray-400"
+                            >search</mat-icon
+                        >
                     </mat-form-field>
+
+                    <!-- Loading State -->
+                    <div *ngIf="isLoadingFarms" class="text-center py-4">
+                        <mat-spinner
+                            diameter="24"
+                            class="mx-auto"
+                        ></mat-spinner>
+                        <p
+                            class="text-xs text-gray-500 dark:text-gray-400 mt-2"
+                        >
+                            Loading farms...
+                        </p>
+                    </div>
+
+                    <!-- Available Farms -->
+                    <div *ngIf="!isLoadingFarms" class="mt-3">
+                        <div class="space-y-2 max-h-48 overflow-y-auto pr-2">
+                            <button
+                                *ngFor="let farm of filteredFarms"
+                                type="button"
+                                (click)="addFarm(farm)"
+                                class="w-full flex items-center justify-between p-3 text-left rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            >
+                                <div class="flex items-center">
+                                    <mat-icon
+                                        class="!w-5 !h-5 mr-3 text-green-500"
+                                        >location_on</mat-icon
+                                    >
+                                    <span
+                                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                                    >
+                                        {{ farm.farmName }}
+                                    </span>
+                                </div>
+                                <mat-icon class="!w-5 !h-5 text-gray-400"
+                                    >add</mat-icon
+                                >
+                            </button>
+
+                            <div
+                                *ngIf="filteredFarms.length === 0"
+                                class="text-center py-4"
+                            >
+                                <p
+                                    class="text-sm text-gray-500 dark:text-gray-400"
+                                >
+                                    {{
+                                        searchFarmText
+                                            ? 'No farms found matching "' +
+                                              searchFarmText +
+                                              '"'
+                                            : "All farms selected"
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Production Type -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                        Production Type *
-                    </label>
-                    <mat-form-field appearance="outline" class="w-full">
-                        <mat-select [(ngModel)]="productionType" name="productionType">
-                            <mat-option value="standard">Standard Production</mat-option>
-                            <mat-option value="express">Express Production</mat-option>
-                            <mat-option value="custom">Custom Production</mat-option>
-                        </mat-select>
-                    </mat-form-field>
-                </div>
+                <!-- Selected Farms -->
+                <div *ngIf="selectedFarms.length > 0" class="mt-6">
+                    <h5
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3"
+                    >
+                        Selected Farms Details
+                    </h5>
 
-                <!-- Start Date -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                        Start Date
-                    </label>
-                    <mat-form-field appearance="outline" class="w-full">
-                        <input matInput [matDatepicker]="startPicker" 
-                               [(ngModel)]="startDate"
-                               name="startDate">
-                        <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #startPicker></mat-datepicker>
-                        <mat-icon matPrefix class="!text-lg text-gray-400">event</mat-icon>
-                    </mat-form-field>
-                </div>
+                    <div class="space-y-4">
+                        <div
+                            *ngFor="let detail of farmDetails"
+                            class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                        >
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center">
+                                    <mat-icon
+                                        class="!w-5 !h-5 mr-2 text-primary-500"
+                                        >agriculture</mat-icon
+                                    >
+                                    <span
+                                        class="text-sm font-medium text-gray-900 dark:text-gray-100"
+                                    >
+                                        {{ detail.farmName }}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    mat-icon-button
+                                    (click)="removeFarm(detail.farmId)"
+                                    class="!h-8 !w-8 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                                >
+                                    <mat-icon class="!w-4 !h-4"
+                                        >delete</mat-icon
+                                    >
+                                </button>
+                            </div>
 
-                <!-- End Date -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                        End Date
-                    </label>
-                    <mat-form-field appearance="outline" class="w-full">
-                        <input matInput [matDatepicker]="endPicker" 
-                               [(ngModel)]="endDate"
-                               name="endDate">
-                        <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #endPicker></mat-datepicker>
-                        <mat-icon matPrefix class="!text-lg text-gray-400">event</mat-icon>
-                    </mat-form-field>
-                </div>
+                            <!-- Forecasted Trips -->
+                            <div class="mb-3">
+                                <label
+                                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                                >
+                                    Forecasted Trips
+                                </label>
+                                <div class="flex items-center space-x-2">
+                                    <button
+                                        type="button"
+                                        mat-icon-button
+                                        [disabled]="detail.forecastedTrips <= 1"
+                                        (click)="
+                                            updateFarmDetail(
+                                                detail.farmId,
+                                                'forecastedTrips',
+                                                detail.forecastedTrips - 1
+                                            )
+                                        "
+                                        class="!h-8 !w-8 border border-gray-300 dark:border-gray-600"
+                                    >
+                                        <mat-icon class="!w-4 !h-4"
+                                            >remove</mat-icon
+                                        >
+                                    </button>
 
-                <!-- Description -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                        Description
-                    </label>
-                    <mat-form-field appearance="outline" class="w-full">
-                        <textarea matInput [(ngModel)]="description" 
-                                  name="description"
-                                  placeholder="Add production description" 
-                                  rows="3"></textarea>
-                        <mat-icon matPrefix class="!text-lg text-gray-400">description</mat-icon>
-                    </mat-form-field>
-                </div>
+                                    <mat-form-field
+                                        appearance="outline"
+                                        class="flex-1"
+                                    >
+                                        <input
+                                            matInput
+                                            type="number"
+                                            [(ngModel)]="detail.forecastedTrips"
+                                            (ngModelChange)="
+                                                updateFarmDetail(
+                                                    detail.farmId,
+                                                    'forecastedTrips',
+                                                    $event
+                                                )
+                                            "
+                                            name="forecastedTrips_{{
+                                                detail.farmId
+                                            }}"
+                                            min="1"
+                                            max="100"
+                                            class="!text-sm text-center"
+                                        />
+                                    </mat-form-field>
 
-                <!-- Priority -->
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                        Priority
-                    </label>
-                    <mat-radio-group [(ngModel)]="priority" name="priority" class="flex flex-col gap-2">
-                        <mat-radio-button value="low" class="text-sm">Low Priority</mat-radio-button>
-                        <mat-radio-button value="medium" class="text-sm">Medium Priority</mat-radio-button>
-                        <mat-radio-button value="high" class="text-sm">High Priority</mat-radio-button>
-                        <mat-radio-button value="urgent" class="text-sm">Urgent</mat-radio-button>
-                    </mat-radio-group>
-                </div>
+                                    <button
+                                        type="button"
+                                        mat-icon-button
+                                        (click)="
+                                            updateFarmDetail(
+                                                detail.farmId,
+                                                'forecastedTrips',
+                                                detail.forecastedTrips + 1
+                                            )
+                                        "
+                                        class="!h-8 !w-8 border border-gray-300 dark:border-gray-600"
+                                    >
+                                        <mat-icon class="!w-4 !h-4"
+                                            >add</mat-icon
+                                        >
+                                    </button>
+                                </div>
+                            </div>
 
-                <!-- Form Actions -->
-                <div class="pt-4 flex gap-2">
+                            <!-- Allocated Heads -->
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                                >
+                                    Allocated Heads *
+                                </label>
+                                <mat-form-field
+                                    appearance="outline"
+                                    class="w-full"
+                                >
+                                    <input
+                                        matInput
+                                        type="number"
+                                        [(ngModel)]="detail.allocatedHeads"
+                                        (ngModelChange)="
+                                            updateFarmDetail(
+                                                detail.farmId,
+                                                'allocatedHeads',
+                                                $event
+                                            )
+                                        "
+                                        name="allocatedHeads_{{
+                                            detail.farmId
+                                        }}"
+                                        placeholder="Enter number of heads"
+                                        min="1"
+                                        required
+                                        class="!text-sm"
+                                    />
+                                    <mat-icon
+                                        matPrefix
+                                        class="!text-lg text-gray-400"
+                                        >pets</mat-icon
+                                    >
+                                    <mat-error
+                                        *ngIf="
+                                            productionForm.submitted &&
+                                            detail.allocatedHeads <= 0
+                                        "
+                                    >
+                                        Allocated heads must be greater than 0
+                                    </mat-error>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex gap-3">
                     <button
-                        mat-stroked-button
                         type="button"
-                        class="flex-1 !py-2 !text-sm"
-                        (click)="closeDrawer()">
+                        mat-stroked-button
+                        class="flex-1 !py-2.5 !text-sm"
+                        (click)="closeDrawer()"
+                    >
                         Cancel
                     </button>
+                    <!-- Replace the existing submit button with this -->
                     <button
+                        type="submit"
                         mat-raised-button
                         color="primary"
-                        type="button"
-                        class="flex-1 !py-2 !text-sm"
-                        [disabled]="!productionName.trim()"
-                        (click)="onSubmit()">
-                        Create Production
+                        class="flex-1 !py-2.5 !text-sm"
+                        [disabled]="isSubmitDisabled()"
+                    >
+                        <div class="flex items-center justify-center">
+                            <mat-icon
+                                class="!w-5 !h-5 mr-2"
+                                *ngIf="!isSubmitting"
+                                >add_circle</mat-icon
+                            >
+                            <mat-spinner
+                                *ngIf="isSubmitting"
+                                diameter="20"
+                                class="mr-2"
+                            ></mat-spinner>
+                            {{ submitButtonText }}
+                        </div>
                     </button>
                 </div>
-            </form>
-        </div>
+
+                <!-- Validation Summary -->
+                <div
+                    *ngIf="productionForm.submitted && !isValid()"
+                    class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                >
+                    <div class="flex items-start">
+                        <mat-icon class="!w-5 !h-5 text-red-500 mt-0.5 mr-2"
+                            >error</mat-icon
+                        >
+                        <div class="text-sm text-red-700 dark:text-red-300">
+                            <p class="font-medium mb-1">
+                                Please fix the following:
+                            </p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li *ngIf="!productionName.trim()">
+                                    Production name is required
+                                </li>
+                                <li *ngIf="selectedFarms.length === 0">
+                                    At least one farm must be selected
+                                </li>
+                                <li *ngIf="hasInvalidAllocations()">
+                                    All farms must have allocated heads
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 </div>

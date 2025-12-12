@@ -14,6 +14,8 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatRadioModule } from '@angular/material/radio';
 
 import { CreateProductionFormComponent } from './create-production/create-production-form/create-production-form.component';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { TripSheetViewComponent } from './trip-sheet-view/trip-sheet-view.component';
 
 
 const routes: Routes = [
@@ -21,6 +23,10 @@ const routes: Routes = [
       path: '',
       component: TripSheetComponent, 
   },
+  {
+    path: 'view/:id',
+    component: TripSheetViewComponent,
+  }
 ];
 
 @NgModule({
@@ -28,6 +34,7 @@ const routes: Routes = [
     TripSheetComponent,
     TripSheetSideNavComponent,
     CreateProductionFormComponent,
+    TripSheetViewComponent,
   ],
   imports: [
     CommonModule,
@@ -40,6 +47,7 @@ const routes: Routes = [
     MatSelectModule,
     MatRadioModule,
     MatNativeDateModule,
+    MatSnackBarModule,
     
     RouterModule.forChild(routes), 
   ]
