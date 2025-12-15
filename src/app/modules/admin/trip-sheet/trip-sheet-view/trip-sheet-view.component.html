@@ -1,1 +1,361 @@
-<p>trip-sheet-view works!</p>
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden overflow-y-auto">
+    <div class="trip-sheet-container" *ngIf="!loading && production">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-row">
+                <div class="header-left">
+                    <h2>TRIP SHEET - {{ production.productionName }}</h2>
+                    <div class="production-info">
+                        <span
+                            ><strong>Production Date:</strong>
+                            {{
+                                production.startDateTime | date : "dd-MMM-yy"
+                            }}</span
+                        >
+                        <span
+                            ><strong>Total Heads:</strong>
+                            {{ production.totalHeads }}</span
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Farm Headers -->
+        <div class="farms-section">
+            <div
+                class="farm-header"
+                *ngFor="let farm of production.farmDetails"
+            >
+                <div class="farm-name">{{ farm.farmName }}</div>
+                <table class="farm-stats">
+                    <tr>
+                        <td class="label">Forecasted Trips</td>
+                        <td class="value">{{ farm.forecastedTrips }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Actual Trips Harvested</td>
+                        <td class="value editable">
+                            {{ farm.actualTrips || 0 }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">Remaining Trips For Harvest</td>
+                        <td class="value">
+                            {{ farm.forecastedTrips - (farm.actualTrips || 0) }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Main Trip Table -->
+        <div class="trip-table-wrapper">
+            <table class="trip-table">
+                <thead>
+                    <tr class="main-header">
+                        <th rowspan="2">Trip No.</th>
+                        <th rowspan="2">DRIVER</th>
+                        <th rowspan="2">PLATE #</th>
+                        <th rowspan="2">Volume</th>
+                        <th rowspan="2">A.I.W</th>
+                        <th rowspan="2">Departure Time</th>
+                        <th rowspan="2">Time Arrived</th>
+                        <th rowspan="2">Travel Time (minutes)</th>
+                        <th colspan="4" class="section-header unloading">
+                            UNLOADING
+                        </th>
+                        <th colspan="3" class="section-header pressing">
+                            DRESSING PLANT
+                        </th>
+                        <th colspan="4" class="section-header loading">
+                            LOADING EMPTY COOPS
+                        </th>
+                        <th rowspan="2">Transfer Time (minutes)</th>
+                        <th rowspan="2">Time Finished DP</th>
+                    </tr>
+                    <tr class="sub-header">
+                        <!-- UNLOADING -->
+                        <th>Unloading Start</th>
+                        <th>Unloading End</th>
+                        <th>Unloading Time (mins)</th>
+                        <th>Hanging Start Time</th>
+
+                        <!-- DRESSING PLANT -->
+                        <th>Moving Time</th>
+                        <th>Hanging End</th>
+                        <th>Hanging Time (mins)</th>
+
+                        <!-- LOADING EMPTY COOPS -->
+                        <th>Equivalent Time</th>
+                        <th>Running out</th>
+                        <th>Loading Start</th>
+                        <th>Loading End</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Generate rows for each farm's forecasted trips -->
+                    <ng-container
+                        *ngFor="
+                            let farm of production.farmDetails;
+                            let farmIndex = index
+                        "
+                    >
+                        <tr
+                            *ngFor="
+                                let trip of generateTripRows(farm);
+                                let tripIndex = index
+                            "
+                            [class.farm-section]="tripIndex === 0"
+                            [style.background-color]="getFarmColor(farmIndex)"
+                        >
+                            <td>{{ trip.tripNo }}</td>
+                            <td class="editable">{{ trip.driver || "" }}</td>
+                            <td class="editable">{{ trip.plate || "" }}</td>
+                            <td class="editable">{{ trip.volume || "" }}</td>
+                            <td class="highlight">{{ trip.aiw || "" }}</td>
+                            <td class="editable">{{ trip.pcsTime || "" }}</td>
+                            <td class="editable">
+                                {{ trip.timeArrived || "" }}
+                            </td>
+                            <td class="calculated">
+                                {{ trip.travelTime || "" }}
+                            </td>
+
+                            <!-- UNLOADING -->
+                            <td class="editable">
+                                {{ trip.unloadingStart || "" }}
+                            </td>
+                            <td class="editable">
+                                {{ trip.unloadingEnd || "" }}
+                            </td>
+                            <td class="calculated">
+                                {{ trip.unloadingTime || "" }}
+                            </td>
+                            <td class="editable">
+                                {{ trip.haulerStart || "" }}
+                            </td>
+
+                            <!-- PRESSING PLANT -->
+                            <td class="calculated">
+                                {{ trip.movingTime || "" }}
+                            </td>
+                            <td class="editable">
+                                {{ trip.haulingEnd || "" }}
+                            </td>
+                            <td class="calculated">
+                                {{ trip.haulingTime || "" }}
+                            </td>
+
+                            <!-- LOADING EMPTY COOPS -->
+                            <td class="editable">
+                                {{ trip.equalizeHauling || "" }}
+                            </td>
+                            <td class="calculated">
+                                {{ trip.runningOut || "" }}
+                            </td>
+                            <td class="editable">
+                                {{ trip.loadingStart || "" }}
+                            </td>
+                            <td class="editable">
+                                {{ trip.loadingEnd || "" }}
+                            </td>
+
+                            <td class="calculated">
+                                {{ trip.transferTime || "" }}
+                            </td>
+                            <td class="calculated">
+                                {{ trip.timeFinishedDP || "" }}
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="loading-container" *ngIf="loading">
+    <p>Loading production data...</p>
+</div>
+
+<div class="error-container" *ngIf="error">
+    <p>{{ error }}</p>
+</div>
+
+<style>
+    .trip-sheet-container {
+        padding: 20px;
+        background: white;
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+    }
+
+    .header-section {
+        margin-bottom: 20px;
+    }
+
+    .header-left h2 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .production-info {
+        display: flex;
+        gap: 30px;
+        font-size: 13px;
+    }
+
+    .farms-section {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .farm-header {
+        border: 2px solid #333;
+        min-width: 250px;
+    }
+
+    .farm-name {
+        background: #4472c4;
+        color: white;
+        padding: 8px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .farm-stats {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .farm-stats tr {
+        border-bottom: 1px solid #ddd;
+    }
+
+    .farm-stats td {
+        padding: 6px 10px;
+    }
+
+    .farm-stats .label {
+        background: white;
+        font-weight: normal;
+    }
+
+    .farm-stats .value {
+        background: #e7e6e6;
+        text-align: center;
+        font-weight: bold;
+        width: 60px;
+    }
+
+    .farm-stats .value.editable {
+        background: #fff2cc;
+    }
+
+    .trip-table-wrapper {
+        overflow-x: auto;
+        border: 1px solid #333;
+    }
+
+    .trip-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+
+    .trip-table th,
+    .trip-table td {
+        border: 1px solid #333;
+        padding: 6px 4px;
+        text-align: center;
+    }
+
+    .trip-table thead th {
+        background: #4472c4;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .trip-table .main-header th {
+        padding: 8px 4px;
+    }
+
+    .trip-table .section-header {
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .trip-table .section-header.unloading {
+        background: #70ad47;
+    }
+
+    .trip-table .section-header.pressing {
+        background: #00b0f0;
+    }
+
+    .trip-table .section-header.loading {
+        background: #ffc000;
+    }
+
+    .trip-table .sub-header th {
+        font-size: 10px;
+        padding: 4px 2px;
+        font-weight: normal;
+    }
+
+    .trip-table tbody tr:nth-child(even) {
+        background: #f9f9f9;
+    }
+
+    .trip-table tbody tr:hover {
+        background: #e8f4f8;
+    }
+
+    .trip-table td.editable {
+        background: #fff2cc;
+        cursor: pointer;
+    }
+
+    .trip-table td.highlight {
+        background: #ffe699;
+        font-weight: bold;
+    }
+
+    .trip-table td.calculated {
+        background: #e7e6e6;
+        color: #666;
+    }
+
+    .trip-table tbody tr.farm-section {
+        border-top: 3px solid #333;
+    }
+
+    .loading-container,
+    .error-container {
+        padding: 40px;
+        text-align: center;
+        font-size: 16px;
+    }
+
+    .error-container {
+        color: #d32f2f;
+    }
+
+    @media print {
+        .trip-sheet-container {
+            padding: 10px;
+        }
+
+        .trip-table {
+            font-size: 9px;
+        }
+    }
+</style>
