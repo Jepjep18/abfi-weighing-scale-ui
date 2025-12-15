@@ -28,6 +28,9 @@ export class TripSheetComponent implements OnInit {
   totalPages = 0;
   searchTerm = '';
 
+  // Add Math for template usage
+  Math = Math;
+
   constructor(private productionService: ProductionService) {}
 
   ngOnInit(): void {
@@ -124,9 +127,6 @@ export class TripSheetComponent implements OnInit {
     this.refreshProductions();
     // Close the drawer
     this.closeCreateProductionDrawer();
-    
-    // You could also add a success message here
-    // this.showSuccessMessage('Production created successfully!');
   }
   
   // Helper method to get page numbers for pagination display
@@ -165,4 +165,6 @@ export class TripSheetComponent implements OnInit {
     
     return pages;
   }
+
+  
 }

@@ -1,30 +1,108 @@
 <div class="h-full flex flex-col bg-white dark:bg-gray-900">
-    <!-- Header -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Trip Sheet Actions</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage and filter your trip sheets</p>
+    <!-- Header with Search Stats -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Production Search & Filters</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Search, filter, and manage your productions
+                </p>
+            </div>
+            <button mat-icon-button
+                class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors -mr-2"
+                (click)="closeDrawer()" aria-label="Close panel">
+                <mat-icon>close</mat-icon>
+            </button>
         </div>
-        <button
-            mat-icon-button
-            class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors -mr-2"
-            (click)="closeDrawer()"
-            aria-label="Close panel">
-            <mat-icon>close</mat-icon>
-        </button>
+
+        <!-- Search Stats -->
+        <div *ngIf="totalCount > 0" class="flex items-center gap-4 text-xs">
+            <span class="text-gray-600 dark:text-gray-400">
+                Showing {{getStartIndex()}}-{{getEndIndex()}} of {{totalCount}}
+            </span>
+            <span class="text-gray-600 dark:text-gray-400">
+                Page {{currentPage}} of {{totalPages}}
+            </span>
+        </div>
     </div>
 
     <!-- Main Content -->
     <div class="flex-1 overflow-y-auto">
         <div class="p-6 space-y-6">
+            <!-- Search and Pagination Section -->
+            <div class="space-y-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                <!-- Search Input -->
+                <div>
+                    <mat-form-field appearance="outline" class="w-full">
+                        <mat-label>Search productions</mat-label>
+                        <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()"
+                            placeholder="Search by production name or farm name..." />
+                        <button matSuffix mat-icon-button (click)="onSearch()">
+                            <mat-icon>search</mat-icon>
+                        </button>
+                    </mat-form-field>
+                </div>
+
+                <!-- Controls Row -->
+                <div class="flex gap-2">
+                    <!-- Items per page -->
+                    <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Items per page</mat-label>
+                        <mat-select [(value)]="pageSize" (selectionChange)="onPageSizeChange()">
+                            <mat-option [value]="5">5</mat-option>
+                            <mat-option [value]="10">10</mat-option>
+                            <mat-option [value]="20">20</mat-option>
+                            <mat-option [value]="50">50</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+
+                    <!-- Clear button -->
+                    <div *ngIf="searchQuery" class="flex items-center">
+                        <button mat-button color="warn" (click)="onClearSearch()" class="!h-10">
+                            <mat-icon class="!w-5 !h-5 mr-1">clear</mat-icon>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <div *ngIf="totalPages > 1"
+                    class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <!-- Previous Button -->
+                    <button mat-stroked-button [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)"
+                        class="!h-8 !text-sm">
+                        <mat-icon class="!w-4 !h-4 mr-1">chevron_left</mat-icon>
+                        Previous
+                    </button>
+
+                    <!-- Page Numbers -->
+                    <div class="flex items-center gap-1">
+                        <ng-container *ngFor="let page of getPages()">
+                            <button *ngIf="isNumber(page)" mat-button [color]="page === currentPage ? 'primary' : ''"
+                                (click)="goToPage(page)" class="!h-8 !w-8 !min-w-0 !p-0 !text-sm"
+                                [class.font-semibold]="page === currentPage">
+                                {{page}}
+                            </button>
+                            <span *ngIf="!isNumber(page)" class="px-2 text-gray-500">
+                                {{page}}
+                            </span>
+                        </ng-container>
+                    </div>
+
+                    <!-- Next Button -->
+                    <button mat-stroked-button [disabled]="currentPage === totalPages"
+                        (click)="goToPage(currentPage + 1)" class="!h-8 !text-sm">
+                        Next
+                        <mat-icon class="!w-4 !h-4 ml-1">chevron_right</mat-icon>
+                    </button>
+                </div>
+            </div>
+
             <!-- Quick Actions Section -->
             <div>
                 <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Quick Actions</h4>
-                
+
                 <!-- Create Production Button -->
-                <button
-                    mat-raised-button
-                    color="primary"
+                <button mat-raised-button color="primary"
                     class="w-full flex items-center justify-center py-3 px-4 rounded-lg mb-3 shadow-sm hover:shadow transition-shadow"
                     (click)="createProduction()">
                     <mat-icon class="mr-2 !text-xl">add_circle</mat-icon>
@@ -33,32 +111,28 @@
 
                 <!-- Action Buttons Grid -->
                 <div class="grid grid-cols-2 gap-2.5">
-                    <button
-                        mat-stroked-button
+                    <button mat-stroked-button
                         class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all"
                         (click)="handleAction('export')">
                         <mat-icon class="!text-xl text-blue-600 dark:text-blue-400 mb-1.5">download</mat-icon>
                         <span class="font-medium text-xs text-gray-700 dark:text-gray-300">Export</span>
                     </button>
-                    
-                    <button
-                        mat-stroked-button
+
+                    <button mat-stroked-button
                         class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950 transition-all"
                         (click)="handleAction('print')">
                         <mat-icon class="!text-xl text-green-600 dark:text-green-400 mb-1.5">print</mat-icon>
                         <span class="font-medium text-xs text-gray-700 dark:text-gray-300">Print</span>
                     </button>
-                    
-                    <button
-                        mat-stroked-button
+
+                    <button mat-stroked-button
                         class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-purple-500 dark:hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950 transition-all"
                         (click)="handleAction('share')">
                         <mat-icon class="!text-xl text-purple-600 dark:text-purple-400 mb-1.5">ios_share</mat-icon>
                         <span class="font-medium text-xs text-gray-700 dark:text-gray-300">Share</span>
                     </button>
-                    
-                    <button
-                        mat-stroked-button
+
+                    <button mat-stroked-button
                         class="flex flex-col items-center justify-center p-3 h-auto rounded-lg border-gray-200 dark:border-gray-700 hover:border-amber-500 dark:hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all"
                         (click)="handleAction('duplicate')">
                         <mat-icon class="!text-xl text-amber-600 dark:text-amber-400 mb-1.5">content_copy</mat-icon>
@@ -70,10 +144,10 @@
             <!-- Divider -->
             <div class="border-t border-gray-200 dark:border-gray-700"></div>
 
-            <!-- Filters Section -->
+            <!-- Advanced Filters Section -->
             <div>
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Filters</h4>
-                
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Advanced Filters</h4>
+
                 <div class="space-y-3">
                     <!-- Status Filter -->
                     <div>
@@ -81,7 +155,7 @@
                             Status
                         </label>
                         <mat-form-field appearance="outline" class="w-full">
-                            <mat-select [(ngModel)]="selectedStatus">
+                            <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onStatusChange()">
                                 <mat-option value="all">All Status</mat-option>
                                 <mat-option value="draft">Draft</mat-option>
                                 <mat-option value="in-progress">In Progress</mat-option>
@@ -103,7 +177,7 @@
                                 <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
                                 <mat-datepicker #startPicker></mat-datepicker>
                             </mat-form-field>
-                            
+
                             <mat-form-field appearance="outline" class="w-full">
                                 <mat-label>End</mat-label>
                                 <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate">
@@ -113,30 +187,14 @@
                         </div>
                     </div>
 
-                    <!-- Search -->
-                    <div>
-                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                            Search
-                        </label>
-                        <mat-form-field appearance="outline" class="w-full">
-                            <input matInput [(ngModel)]="searchQuery" placeholder="Keywords, ID, or name">
-                            <mat-icon matPrefix class="!text-lg text-gray-400">search</mat-icon>
-                        </mat-form-field>
-                    </div>
-
                     <!-- Filter Actions -->
                     <div class="flex gap-2 pt-1">
-                        <button
-                            mat-raised-button
-                            color="primary"
-                            class="flex-1 !py-2 !text-sm font-medium"
-                            (click)="applyFilters()">
-                            Apply
+                        <button mat-raised-button color="primary" class="flex-1 !py-2 !text-sm font-medium"
+                            (click)="applyAdvancedFilters()">
+                            Apply Filters
                         </button>
-                        <button
-                            mat-stroked-button
-                            class="!py-2 !px-4 !text-sm font-medium"
-                            (click)="clearFilters()">
+                        <button mat-stroked-button class="!py-2 !px-4 !text-sm font-medium"
+                            (click)="clearAdvancedFilters()">
                             Clear
                         </button>
                     </div>
@@ -148,64 +206,43 @@
 
             <!-- Statistics Section -->
             <div>
-                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Statistics</h4>
-                
-                <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-850 rounded-lg p-4 space-y-2.5">
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Production Statistics</h4>
+
+                <div
+                    class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-850 rounded-lg p-4 space-y-2.5">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full bg-gray-400"></div>
-                            <span class="text-xs text-gray-600 dark:text-gray-400">Total Sheets</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Total Productions</span>
                         </div>
-                        <span class="font-semibold text-sm text-gray-900 dark:text-white">{{stats.total}}</span>
+                        <span class="font-semibold text-sm text-gray-900 dark:text-white">{{totalCount || 0}}</span>
                     </div>
-                    
+
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full bg-green-500"></div>
-                            <span class="text-xs text-gray-600 dark:text-gray-400">This Month</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Current Page</span>
                         </div>
-                        <span class="font-semibold text-sm text-green-600 dark:text-green-400">{{stats.thisMonth}}</span>
+                        <span class="font-semibold text-sm text-green-600 dark:text-green-400">{{currentPage}}</span>
                     </div>
-                    
+
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full bg-amber-500"></div>
-                            <span class="text-xs text-gray-600 dark:text-gray-400">In Progress</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Page Size</span>
                         </div>
-                        <span class="font-semibold text-sm text-amber-600 dark:text-amber-400">{{stats.inProgress}}</span>
+                        <span class="font-semibold text-sm text-amber-600 dark:text-amber-400">{{pageSize}}</span>
                     </div>
-                    
+
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
                             <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span class="text-xs text-gray-600 dark:text-gray-400">Completed</span>
+                            <span class="text-xs text-gray-600 dark:text-gray-400">Total Pages</span>
                         </div>
-                        <span class="font-semibold text-sm text-blue-600 dark:text-blue-400">{{stats.completed}}</span>
+                        <span class="font-semibold text-sm text-blue-600 dark:text-blue-400">{{totalPages}}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Optional Footer (commented out) -->
-    <!-- <div class="px-6 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-850">
-        <div class="flex items-center justify-between gap-2">
-            <button
-                mat-button
-                color="warn"
-                class="!text-xs font-medium flex-1"
-                (click)="handleAction('delete-all')">
-                <mat-icon class="!text-base mr-1">delete_sweep</mat-icon>
-                Clear All
-            </button>
-            <button
-                mat-button
-                color="primary"
-                class="!text-xs font-medium flex-1"
-                (click)="handleAction('settings')">
-                <mat-icon class="!text-base mr-1">tune</mat-icon>
-                Settings
-            </button>
-        </div>
-    </div> -->
 </div>

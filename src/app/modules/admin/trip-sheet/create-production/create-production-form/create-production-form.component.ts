@@ -245,7 +245,7 @@ export class CreateProductionFormComponent implements OnInit {
 
     // Get button text based on submission state
     get submitButtonText(): string {
-        return this.isSubmitting ? 'Creating...' : 'Create Production';
+        return this.isSubmitting ? 'Creating...' : 'Start Production';
     }
 
     // Check if submit button should be disabled

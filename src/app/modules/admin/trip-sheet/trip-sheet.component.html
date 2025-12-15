@@ -1,21 +1,10 @@
-<div
-    class="absolute inset-0 flex flex-col min-w-0 overflow-hidden"
-    [class.drawer-open]="isCreateProductionDrawerOpen"
->
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden" [class.drawer-open]="isCreateProductionDrawerOpen">
     <mat-drawer-container class="flex-auto" autosize>
         <!-- Left Drawer (Create Production Form) -->
-        <mat-drawer
-            class="w-96 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700"
-            [autoFocus]="false"
-            [mode]="'side'"
-            [position]="'start'"
-            [opened]="isCreateProductionDrawerOpen"
-            #createProductionDrawer
-        >
-            <app-create-production-form
-                (close)="closeCreateProductionDrawer()"
-                (productionCreated)="onProductionCreated($event)"
-            >
+        <mat-drawer class="w-96 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700" [autoFocus]="false"
+            [mode]="'side'" [position]="'start'" [opened]="isCreateProductionDrawerOpen" #createProductionDrawer>
+            <app-create-production-form (close)="closeCreateProductionDrawer()"
+                (productionCreated)="onProductionCreated($event)">
             </app-create-production-form>
         </mat-drawer>
 
@@ -23,39 +12,29 @@
         <mat-drawer-content class="overflow-y-auto">
             <!-- Header -->
             <div
-                class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-6 sm:px-8 pt-6 sm:pt-8 pb-4 bg-default dark:bg-transparent border-b border-gray-300 dark:border-gray-700"
-            >
+                class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-6 sm:px-8 pt-6 sm:pt-8 pb-4 bg-white dark:bg-white border-b border-gray-300 dark:border-gray-700">
                 <div class="flex-1 min-w-0">
                     <!-- Title -->
                     <div class="mt-1">
-                        <h2
-                            class="text-2xl md:text-3xl font-bold tracking-tight leading-7 sm:leading-9 truncate"
-                        >
+                        <h2 class="text-2xl md:text-3xl font-bold tracking-tight leading-7 sm:leading-9 truncate">
                             TRIP SHEET
                         </h2>
                     </div>
                 </div>
                 <!-- Actions -->
-                <div
-                    class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4 space-x-2"
-                >   
+                <div class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4 space-x-2">
                     <!-- Menu Button -->
-                    <button
-                        mat-icon-button
-                        class="!h-10 !w-10 flex items-center justify-center"
-                        (click)="toggleRightDrawer()"
-                    >
+                    <button mat-icon-button class="!h-10 !w-10 flex items-center justify-center"
+                        (click)="toggleRightDrawer()">
                         <mat-icon class="!w-6 !h-6">menu</mat-icon>
                     </button>
                 </div>
             </div>
 
             <!-- Main content -->
-            <div class="p-6 sm:p-8">
-                <!-- Search and Filters Section -->
-                <div class="mb-6">
-                    <div class="flex flex-col sm:flex-row gap-4 items-end">
-                        <!-- Search Input -->
+            <div class="p-2 sm:p-2">
+                <!-- <div class="mb-1">
+                    <div class="flex flex-col sm:flex-row gap-1 items-end">
                         <div class="flex-1">
                             <mat-form-field appearance="outline" class="w-full">
                                 <mat-label>Search productions</mat-label>
@@ -75,7 +54,6 @@
                             </mat-form-field>
                         </div>
                         
-                        <!-- Page Size Selector -->
                         <div class="w-full sm:w-48">
                             <mat-form-field appearance="outline" class="w-full">
                                 <mat-label>Items per page</mat-label>
@@ -91,7 +69,6 @@
                             </mat-form-field>
                         </div>
                         
-                        <!-- Clear Search Button (only visible when search term exists) -->
                         <div *ngIf="searchTerm">
                             <button
                                 mat-button
@@ -104,27 +81,29 @@
                             </button>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Loading State -->
                 <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-12">
                     <mat-spinner diameter="50" class="mb-4"></mat-spinner>
-                    <p class="text-gray-600 dark:text-gray-400">Loading productions...</p>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Loading productions...
+                    </p>
                 </div>
 
                 <!-- Error State -->
-                <div *ngIf="errorMessage && !isLoading" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
+                <div *ngIf="errorMessage && !isLoading"
+                    class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 mb-6">
                     <div class="flex items-center">
                         <mat-icon class="text-red-500 mr-3">error</mat-icon>
                         <div>
-                            <h3 class="text-red-800 dark:text-red-200 font-medium">Failed to load productions</h3>
-                            <p class="text-red-700 dark:text-red-300 text-sm mt-1">{{ errorMessage }}</p>
-                            <button
-                                mat-button
-                                color="warn"
-                                (click)="loadProductions()"
-                                class="mt-3"
-                            >
+                            <h3 class="text-red-800 dark:text-red-200 font-medium">
+                                Failed to load productions
+                            </h3>
+                            <p class="text-red-700 dark:text-red-300 text-sm mt-1">
+                                {{ errorMessage }}
+                            </p>
+                            <button mat-button color="warn" (click)="loadProductions()" class="mt-3">
                                 Try Again
                             </button>
                         </div>
@@ -136,12 +115,16 @@
                     <!-- Table Container -->
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
                         <!-- Table Header with Stats -->
-                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                        <div
+                            class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between">
                                 <div>
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Productions</h3>
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                        Productions
+                                    </h3>
                                     <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                        Showing {{ productions.length }} of {{ totalCount }} total productions
+                                        Showing {{ productions.length }} of
+                                        {{ totalCount }} total productions
                                     </p>
                                 </div>
                                 <div class="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
@@ -152,171 +135,258 @@
 
                         <!-- Table -->
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white">
                                 <thead class="bg-gray-50 dark:bg-gray-900/50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Production Name
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Farms
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Total Heads
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                            Allocated Heads
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                            Forecasted Trips
+                                        </th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Start Date
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             End Date
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Status
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Created
                                         </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        <tr 
-                                            *ngFor="let production of productions" 
-                                            class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
-                                            [routerLink]="['/trip-sheet/create-production/view', production.id]"
-                                        >
-                                        <!-- Production Name -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
+
+                                <!-- Each production gets its own tbody -->
+                                <tbody *ngFor="let production of productions"
+                                    class="bg-white divide-y divide-gray-200 dark:divide-gray-700 group"
+                                    (mouseenter)="onProductionHover(production.id)" (mouseleave)="onProductionLeave()">
+
+                                    <!-- Main production row -->
+                                    <tr class="transition-colors cursor-pointer bg-white dark:bg-gray-800 group-hover:bg-gray-50 dark:group-hover:bg-gray-700/50"
+                                        [routerLink]="['/trip-sheet/create-production/view', production.id]">
+
+                                        <!-- Production Name - Span multiple rows -->
+                                        <td class="px-6 py-4 whitespace-nowrap align-top border-r border-gray-200 dark:border-gray-700"
+                                            [attr.rowspan]="production.farmDetails.length > 0 ? production.farmDetails.length : 1">
                                             <div class="flex items-center">
                                                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ production.productionName || 'Unnamed Production' }}
+                                                    {{ production.productionName || "Unnamed Production" }}
                                                 </div>
                                             </div>
                                         </td>
-                                        
-                                        <!-- Farms -->
-                                        <td class="px-6 py-4">
-                                            <div class="flex flex-col space-y-1">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 w-fit">
-                                                    {{ production.farmCount }} {{ production.farmCount === 1 ? 'farm' : 'farms' }}
+
+                                        <!-- First farm row -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                            <div *ngIf="production.farmDetails.length > 0; else noFarms">
+                                                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                    {{ production.farmDetails[0].farmName }}
                                                 </span>
-                                                <div class="text-xs text-gray-600 dark:text-gray-400 truncate max-w-xs">
-                                                    {{ production.farmNames.join(', ') || 'No farms' }}
+                                            </div>
+                                            <ng-template #noFarms>
+                                                <span class="text-sm text-gray-500 dark:text-gray-400 italic">
+                                                    No farms
+                                                </span>
+                                            </ng-template>
+                                        </td>
+
+                                        <!-- Allocated Heads for first farm -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                            <div *ngIf="production.farmDetails.length > 0">
+                                                <span
+                                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                    {{ production.farmDetails[0].allocatedHeads | number }}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Forecasted Trips for first farm -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                            <div *ngIf="production.farmDetails.length > 0">
+                                                <span class="text-sm text-gray-900 dark:text-gray-100">
+                                                    {{ production.farmDetails[0].forecastedTrips }}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Start Date - Span multiple rows -->
+                                        <td class="px-6 py-4 whitespace-nowrap align-top border-r border-gray-200 dark:border-gray-700"
+                                            [attr.rowspan]="production.farmDetails.length > 0 ? production.farmDetails.length : 1">
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                {{ production.startDateTime | date : "mediumDate" }}
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ production.startDateTime | date : "shortTime" }}
                                                 </div>
                                             </div>
                                         </td>
-                                        
-                                        <!-- Total Heads -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                                {{ production.totalHeads | number }} heads
-                                            </span>
-                                        </td>
-                                        
-                                        <!-- Start Date -->
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                            {{ production.startDateTime | date:'mediumDate' }}
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ production.startDateTime | date:'shortTime' }}
+
+                                        <!-- End Date - Span multiple rows -->
+                                        <td class="px-6 py-4 whitespace-nowrap align-top border-r border-gray-200 dark:border-gray-700"
+                                            [attr.rowspan]="production.farmDetails.length > 0 ? production.farmDetails.length : 1">
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                {{ production.endDateTime ? (production.endDateTime | date :
+                                                "mediumDate") : "-" }}
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ production.endDateTime ? (production.endDateTime | date :
+                                                    "shortTime") : "-" }}
+                                                </div>
                                             </div>
                                         </td>
 
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                            {{ production.endDateTime ? (production.endDateTime | date:'mediumDate') : '-' }}
-                                            <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ production.endDateTime ? (production.endDateTime | date:'shortTime') : '-' }}
-                                            </div>
-                                        </td>
-
-
-                                        
-                                        <!-- Status -->
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span 
+                                        <!-- Status - Span multiple rows -->
+                                        <td class="px-6 py-4 whitespace-nowrap align-top border-r border-gray-200 dark:border-gray-700"
+                                            [attr.rowspan]="production.farmDetails.length > 0 ? production.farmDetails.length : 1">
+                                            <span
                                                 class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
                                                 [ngClass]="{
-                                                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': !production.endDateTime,
-                                                    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': production.endDateTime
-                                                }"
-                                            >
-                                                <span class="w-2 h-2 rounded-full mr-2"
-                                                    [ngClass]="{
-                                                        'bg-yellow-500': !production.endDateTime,
-                                                        'bg-purple-500': production.endDateTime
-                                                    }"
-                                                ></span>
-                                                {{ production.endDateTime ? 'Completed' : 'Ongoing' }}
+                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': !production.endDateTime,
+                            'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': production.endDateTime
+                        }">
+                                                <span class="w-2 h-2 rounded-full mr-2" [ngClass]="{
+                                'bg-yellow-500': !production.endDateTime,
+                                'bg-purple-500': production.endDateTime
+                            }"></span>
+                                                {{ production.endDateTime ? "Completed" : "Ongoing" }}
                                             </span>
                                         </td>
-                                        
-                                        <!-- Created -->
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ production.createdAt | date:'mediumDate' }}
+
+                                        <!-- Created - Span multiple rows -->
+                                        <td class="px-6 py-4 whitespace-nowrap align-top border-r border-gray-200 dark:border-gray-700"
+                                            [attr.rowspan]="production.farmDetails.length > 0 ? production.farmDetails.length : 1">
+                                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                {{ production.createdAt | date : "mediumDate" }}
+                                            </div>
                                         </td>
-                                        
-                                        <!-- Actions -->
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+
+                                        <!-- Actions - Span multiple rows -->
+                                        <td class="px-6 py-4 whitespace-nowrap align-top"
+                                            [attr.rowspan]="production.farmDetails.length > 0 ? production.farmDetails.length : 1">
                                             <div class="flex items-center space-x-2">
-                                                <button
-                                                    mat-icon-button
-                                                    color="primary"
-                                                    class="!h-8 !w-8"
-                                                    matTooltip="View Details"
-                                                >
+                                                <button mat-icon-button color="primary" class="!h-8 !w-8"
+                                                    matTooltip="View Details" (click)="$event.stopPropagation()"
+                                                    [routerLink]="['/trip-sheet/create-production/view', production.id]">
                                                     <mat-icon class="!w-4 !h-4">visibility</mat-icon>
                                                 </button>
-                                                <button
-                                                    mat-icon-button
-                                                    color="accent"
-                                                    class="!h-8 !w-8"
-                                                    matTooltip="Edit"
-                                                >
+                                                <button mat-icon-button color="accent" class="!h-8 !w-8"
+                                                    matTooltip="Edit" (click)="$event.stopPropagation()">
                                                     <mat-icon class="!w-4 !h-4">edit</mat-icon>
                                                 </button>
-                                                <button
-                                                    mat-icon-button
-                                                    color="warn"
-                                                    class="!h-8 !w-8"
-                                                    matTooltip="Delete"
-                                                >
+                                                <button mat-icon-button color="warn" class="!h-8 !w-8"
+                                                    matTooltip="Delete" (click)="$event.stopPropagation()">
                                                     <mat-icon class="!w-4 !h-4">delete</mat-icon>
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
-                                    
-                                    <!-- Empty State -->
-                                    <tr *ngIf="productions.length === 0">
-                                        <td colspan="7" class="px-6 py-12 text-center">
+
+                                    <!-- Additional farm rows (if any) -->
+                                    <tr *ngFor="let farm of production.farmDetails.slice(1); let i = index"
+                                        class="transition-colors cursor-pointer bg-white dark:bg-gray-800 group-hover:bg-gray-50 dark:group-hover:bg-gray-700/50"
+                                        [routerLink]="['/trip-sheet/create-production/view', production.id]">
+
+                                        <!-- Farm Name -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-t border-r border-gray-200 dark:border-gray-700">
+                                            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                {{ farm.farmName }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Allocated Heads -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-t border-r border-gray-200 dark:border-gray-700">
+                                            <span
+                                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                                {{ farm.allocatedHeads | number }}
+                                            </span>
+                                        </td>
+
+                                        <!-- Forecasted Trips -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-t border-r border-gray-200 dark:border-gray-700">
+                                            <span class="text-sm text-gray-900 dark:text-gray-100">
+                                                {{ farm.forecastedTrips }}
+                                            </span>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Empty farm state row -->
+                                    <tr *ngIf="production.farmDetails.length === 0"
+                                        class="transition-colors cursor-pointer bg-white dark:bg-gray-800 group-hover:bg-gray-50 dark:group-hover:bg-gray-700/50"
+                                        [routerLink]="['/trip-sheet/create-production/view', production.id]">
+
+                                        <!-- Farm Name -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400 italic">
+                                                No farms
+                                            </span>
+                                        </td>
+
+                                        <!-- Allocated Heads -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                                -
+                                            </span>
+                                        </td>
+
+                                        <!-- Forecasted Trips -->
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                                -
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+
+                                <!-- Empty State - separate tbody for empty state -->
+                                <tbody *ngIf="productions.length === 0">
+                                    <tr>
+                                        <td colspan="9" class="px-6 py-12 text-center bg-white dark:bg-gray-800">
                                             <div class="flex flex-col items-center justify-center">
-                                                <mat-icon class="text-gray-400 dark:text-gray-500 mb-3" style="font-size: 48px; height: 48px; width: 48px;">
+                                                <mat-icon class="text-gray-400 dark:text-gray-500 mb-3"
+                                                    style="font-size: 48px; height: 48px; width: 48px;">
                                                     inventory_2
                                                 </mat-icon>
                                                 <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
                                                     No productions found
                                                 </h3>
                                                 <p class="text-gray-500 dark:text-gray-400 mb-4">
-                                                    {{ searchTerm ? 'Try adjusting your search criteria' : 'Create your first production to get started' }}
+                                                    {{ searchTerm ? "Try adjusting your search criteria" : "Create your
+                                                    first production to get started" }}
                                                 </p>
-                                                <button
-                                                    *ngIf="!searchTerm"
-                                                    mat-raised-button
-                                                    color="primary"
-                                                    (click)="openCreateProductionDrawer()"
-                                                    class="!h-10"
-                                                >
+                                                <button *ngIf="!searchTerm" mat-raised-button color="primary"
+                                                    (click)="openCreateProductionDrawer()" class="!h-10">
                                                     <mat-icon class="!w-5 !h-5 mr-2">add</mat-icon>
                                                     Create Production
                                                 </button>
-                                                <button
-                                                    *ngIf="searchTerm"
-                                                    mat-button
-                                                    color="primary"
-                                                    (click)="clearSearch()"
-                                                    class="!h-10"
-                                                >
+                                                <button *ngIf="searchTerm" mat-button color="primary"
+                                                    (click)="clearSearch()" class="!h-10">
                                                     Clear Search
                                                 </button>
                                             </div>
@@ -327,58 +397,60 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div *ngIf="totalPages > 1 && productions.length > 0" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                        <div *ngIf="totalPages > 1 && productions.length > 0"
+                            class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                                 <!-- Page Info -->
                                 <div class="text-sm text-gray-700 dark:text-gray-300 mb-4 sm:mb-0">
-                                    Showing <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> to 
-                                    <span class="font-medium">{{ Math.min(currentPage * pageSize, totalCount) }}</span> of 
-                                    <span class="font-medium">{{ totalCount }}</span> results
+                                    Showing
+                                    <span class="font-medium">{{
+                                        (currentPage - 1) * pageSize + 1
+                                        }}</span>
+                                    to
+                                    <span class="font-medium">{{
+                                        Math.min(
+                                        currentPage * pageSize,
+                                        totalCount
+                                        )
+                                        }}</span>
+                                    of
+                                    <span class="font-medium">{{
+                                        totalCount
+                                        }}</span>
+                                    results
                                 </div>
-                                
+
                                 <!-- Pagination Controls -->
                                 <nav class="flex items-center space-x-1">
                                     <!-- Previous Button -->
-                                    <button
-                                        mat-icon-button
-                                        [disabled]="currentPage === 1"
-                                        (click)="onPageChange(currentPage - 1)"
-                                        class="!h-9 !w-9"
-                                        matTooltip="Previous page"
-                                    >
+                                    <button mat-icon-button [disabled]="currentPage === 1"
+                                        (click)="onPageChange(currentPage - 1)" class="!h-9 !w-9"
+                                        matTooltip="Previous page">
                                         <mat-icon class="!w-4 !h-4">chevron_left</mat-icon>
                                     </button>
-                                    
+
                                     <!-- Page Numbers -->
                                     <ng-container *ngFor="let page of getPages()">
-                                        <button
-                                            *ngIf="page !== '...'"
-                                            mat-icon-button
-                                            [class.bg-primary-50]="page === currentPage"
-                                            [class.text-primary-600]="page === currentPage"
-                                            [class.dark:bg-primary-900]="page === currentPage"
-                                            [class.dark:text-primary-200]="page === currentPage"
-                                            (click)="onPageChange(page)"
-                                            class="!h-9 !w-9"
-                                        >
+                                        <button *ngIf="page !== '...'" mat-icon-button [class.bg-primary-50]="
+                                                page === currentPage
+                                            " [class.text-primary-600]="
+                                                page === currentPage
+                                            " [class.dark:bg-primary-900]="
+                                                page === currentPage
+                                            " [class.dark:text-primary-200]="
+                                                page === currentPage
+                                            " (click)="onPageChange(page)" class="!h-9 !w-9">
                                             {{ page }}
                                         </button>
-                                        <span
-                                            *ngIf="page === '...'"
-                                            class="px-2 text-gray-400 dark:text-gray-500"
-                                        >
+                                        <span *ngIf="page === '...'" class="px-2 text-gray-400 dark:text-gray-500">
                                             ...
                                         </span>
                                     </ng-container>
-                                    
+
                                     <!-- Next Button -->
-                                    <button
-                                        mat-icon-button
-                                        [disabled]="currentPage === totalPages"
-                                        (click)="onPageChange(currentPage + 1)"
-                                        class="!h-9 !w-9"
-                                        matTooltip="Next page"
-                                    >
+                                    <button mat-icon-button [disabled]="currentPage === totalPages"
+                                        (click)="onPageChange(currentPage + 1)" class="!h-9 !w-9"
+                                        matTooltip="Next page">
                                         <mat-icon class="!w-4 !h-4">chevron_right</mat-icon>
                                     </button>
                                 </nav>
@@ -390,20 +462,12 @@
         </mat-drawer-content>
 
         <!-- Right Drawer (Side Nav) -->
-        <mat-drawer
-            class="w-96 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700"
-            [autoFocus]="false"
-            [mode]="'side'"
-            [position]="'end'"
-            [opened]="false"
-            #rightDrawer
-        >
+        <mat-drawer class="w-96 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700" [autoFocus]="false"
+            [mode]="'side'" [position]="'end'" [opened]="false" #rightDrawer>
             <div class="p-6 h-full overflow-y-auto">
                 <!-- Use the child component -->
-                <app-trip-sheet-side-nav
-                    (close)="closeRightDrawer()"
-                    (createProductionClicked)="openCreateProductionDrawer()"
-                >
+                <app-trip-sheet-side-nav (close)="closeRightDrawer()"
+                    (createProductionClicked)="openCreateProductionDrawer()">
                 </app-trip-sheet-side-nav>
             </div>
         </mat-drawer>
