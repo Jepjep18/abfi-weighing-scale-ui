@@ -22,16 +22,21 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { BookingViewComponent } from './booking-view/booking-view.component';
 
 const routes: Routes = [
   {
       path: '',
       component: BookingComponent, 
   },
+  {
+    path: 'view/:id',
+    component: BookingViewComponent,
+  }
 ];
 
 @NgModule({
-    declarations: [BookingComponent, BookingSidenavComponent],
+    declarations: [BookingComponent, BookingSidenavComponent, BookingViewComponent],
     imports: [
     // Core Angular Modules (MUST BE FIRST)
     CommonModule,
