@@ -1,0 +1,10 @@
+<div class="toast-container">
+    <div
+        *ngFor="let toast of toastService.toasts$ | async; trackBy: trackById"
+        class="toast"
+        [ngClass]="toast.type"
+        @toastAnimation>
+
+        {{ toast.message }}
+    </div>
+</div>

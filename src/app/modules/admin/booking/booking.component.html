@@ -1,10 +1,12 @@
 <div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden">
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row flex-0 sm:items-center sm:justify-between px-6 sm:px-8 pt-6 sm:pt-8 pb-4 bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-700">
+    <div
+        class="flex flex-col sm:flex-row flex-none sm:items-center sm:justify-between px-6 sm:px-8 pt-6 sm:pt-8 pb-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
         <div class="flex-1 min-w-0">
             <!-- Title -->
             <div class="mt-1">
-                <h2 class="text-2xl md:text-3xl font-bold tracking-tight leading-7 sm:leading-9 truncate">
+                <h2
+                    class="text-2xl md:text-3xl font-bold tracking-tight leading-7 sm:leading-9 truncate text-gray-900 dark:text-gray-100">
                     BOOKINGS MANAGEMENT
                 </h2>
             </div>
@@ -12,43 +14,703 @@
         <!-- Actions -->
         <div class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4 space-x-2">
             <!-- Menu Button -->
-            <button mat-icon-button class="!h-10 !w-10 flex items-center justify-center" 
-                    (click)="toggleRightDrawer()" aria-label="Toggle side navigation">
-                <mat-icon class="!w-6 !h-6">menu</mat-icon>
+            <button mat-icon-button class="!h-10 !w-10 flex items-center justify-center" (click)="rightDrawer.toggle()"
+                aria-label="Toggle side navigation">
+                <mat-icon class="!w-6 !h-6 text-gray-600 dark:text-gray-400">menu</mat-icon>
             </button>
         </div>
     </div>
 
     <!-- Main Content Area -->
-    <div class="flex flex-col flex-auto min-h-0 overflow-auto">
-        <!-- Your main booking content goes here -->
-        <!-- <div class="p-6">
-        </div> -->
+    <div class="flex-1 min-h-0 overflow-hidden">
+        <mat-drawer-container class="h-full" autosize>
+            <!-- Main Content -->
+            <mat-drawer-content class="h-full overflow-auto">
+                <div class="p-6">
+                    <!-- Main Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- LEFT PANEL -->
+                        <div class="space-y-6">
+                            <!-- Create Booking -->
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                                <!-- Card Header -->
+                                <div
+                                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between">
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                                Create New Booking
+                                            </h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                Add a new booking with customers
+                                                and products
+                                            </p>
+                                        </div>
+                                        <!-- Philippine Time Display -->
+                                        <div class="mt-2 sm:mt-0">
+                                            <div class="text-sm text-gray-600 dark:text-gray-400 text-right">
+                                                <div class="font-medium">
+                                                    {{ phDate }}
+                                                </div>
+                                                <div class="text-xs mt-0.5">
+                                                    {{ phTime }}
+                                                </div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-500 mt-0.5">
+                                                    PH Time (UTC+8)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Booking Form -->
+                                <form [formGroup]="bookingForm" (ngSubmit)="onSubmit()" class="p-6 space-y-6">
+                                    <!-- Date & Remarks -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Booking Date *
+                                            </label>
+                                            <input type="date" formControlName="bookingDate" [class.border-red-500]="
+                                                    bookingDateControl?.invalid &&
+                                                    bookingDateControl?.touched
+                                                "
+                                                class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                                            <div *ngIf="
+                                                    bookingDateControl?.invalid &&
+                                                    bookingDateControl?.touched
+                                                " class="text-red-500 text-xs mt-1">
+                                                Booking date is required
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Remarks
+                                            </label>
+                                            <input type="text" placeholder="Optional remarks..."
+                                                formControlName="remarks"
+                                                class="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Customers Section -->
+                                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h4 class="text-base font-medium text-gray-900 dark:text-gray-100">
+                                                Customers *
+                                            </h4>
+                                            <button type="button" (click)="addCustomer()"
+                                                class="text-sm px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30">
+                                                + Add Customer
+                                            </button>
+                                        </div>
+
+                                        <!-- Customer Items -->
+                                        <div formArrayName="items" class="space-y-6">
+                                            <ng-container *ngFor="
+                                                    let customer of items.controls;
+                                                    let i = index
+                                                ">
+                                                <div [formGroupName]="i"
+                                                    class="border-l-4 border-blue-500 pl-4 space-y-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-900/30">
+                                                    <!-- Customer Header -->
+                                                    <div class="flex gap-3 items-center">
+                                                        <input type="text" formControlName="customerName"
+                                                            placeholder="Customer Name *" [class.border-red-500]="
+                                                                items
+                                                                    .at(i)
+                                                                    .get(
+                                                                        'customerName'
+                                                                    )
+                                                                    ?.invalid &&
+                                                                items
+                                                                    .at(i)
+                                                                    .get(
+                                                                        'customerName'
+                                                                    )?.touched
+                                                            "
+                                                            class="flex-1 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+
+                                                        <label
+                                                            class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                                            <input type="checkbox" formControlName="isPrio"
+                                                                class="rounded border-gray-300 dark:border-gray-600" />
+                                                            Prio
+                                                        </label>
+
+                                                        <button type="button" (click)="
+                                                                removeCustomer(
+                                                                    i
+                                                                )
+                                                            "
+                                                            class="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                            [disabled]="
+                                                                items.length <=
+                                                                1
+                                                            ">
+                                                            <mat-icon class="!w-5 !h-5">delete</mat-icon>
+                                                        </button>
+                                                    </div>
+
+                                                    <!-- Customer Name Error -->
+                                                    <div *ngIf="
+                                                            items
+                                                                .at(i)
+                                                                .get(
+                                                                    'customerName'
+                                                                )?.invalid &&
+                                                            items
+                                                                .at(i)
+                                                                .get(
+                                                                    'customerName'
+                                                                )?.touched
+                                                        " class="text-red-500 text-xs ml-1">
+                                                        Customer name is
+                                                        required
+                                                    </div>
+
+                                                    <!-- Products Section -->
+                                                    <div class="space-y-3">
+                                                        <div class="flex justify-between items-center">
+                                                            <span
+                                                                class="text-sm text-gray-600 dark:text-gray-400">Products
+                                                                *</span>
+                                                            <button type="button" (click)="
+                                                                    addProduct(
+                                                                        i
+                                                                    )
+                                                                "
+                                                                class="text-xs px-3 py-1.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                                + Add Product
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Product Rows -->
+                                                        <div formArrayName="productQuantities" class="space-y-3">
+                                                            <ng-container *ngFor="
+                                                                    let product of getProductQuantities(
+                                                                        i
+                                                                    ).controls;
+                                                                    let j = index
+                                                                ">
+                                                                <div [formGroupName]="
+                                                                        j
+                                                                    " class="flex gap-3 items-center">
+                                                                    <select formControlName="productId"
+                                                                        [class.border-red-500]="
+                                                                            getProductQuantities(
+                                                                                i
+                                                                            )
+                                                                                .at(
+                                                                                    j
+                                                                                )
+                                                                                .get(
+                                                                                    'productId'
+                                                                                )
+                                                                                ?.invalid &&
+                                                                            getProductQuantities(
+                                                                                i
+                                                                            )
+                                                                                .at(
+                                                                                    j
+                                                                                )
+                                                                                .get(
+                                                                                    'productId'
+                                                                                )
+                                                                                ?.touched
+                                                                        "
+                                                                        class="flex-1 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                                                        <option value=""
+                                                                            class="text-gray-900 dark:text-gray-100">
+                                                                            Select
+                                                                            Product
+                                                                            *
+                                                                        </option>
+                                                                        <option *ngFor="
+                                                                                let product of productClassifications
+                                                                            " [value]="
+                                                                                product.id
+                                                                            " class="text-gray-900 dark:text-gray-100">
+                                                                            {{
+                                                                            product.productCode
+                                                                            }}
+                                                                        </option>
+                                                                    </select>
+
+                                                                    <input type="number" step="0.01" min="0.01"
+                                                                        formControlName="quantity"
+                                                                        placeholder="Quantity *" [class.border-red-500]="
+                                                                            getProductQuantities(
+                                                                                i
+                                                                            )
+                                                                                .at(
+                                                                                    j
+                                                                                )
+                                                                                .get(
+                                                                                    'quantity'
+                                                                                )
+                                                                                ?.invalid &&
+                                                                            getProductQuantities(
+                                                                                i
+                                                                            )
+                                                                                .at(
+                                                                                    j
+                                                                                )
+                                                                                .get(
+                                                                                    'quantity'
+                                                                                )
+                                                                                ?.touched
+                                                                        "
+                                                                        class="w-32 px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+
+                                                                    <button type="button" (click)="
+                                                                            removeProduct(
+                                                                                i,
+                                                                                j
+                                                                            )
+                                                                        "
+                                                                        class="p-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                                        [disabled]="
+                                                                            getProductQuantities(
+                                                                                i
+                                                                            )
+                                                                                .length <=
+                                                                            1
+                                                                        ">
+                                                                        <mat-icon class="!w-5 !h-5">close</mat-icon>
+                                                                    </button>
+                                                                </div>
+
+                                                                <!-- Product Error -->
+                                                                <div *ngIf="
+                                                                        (getProductQuantities(
+                                                                            i
+                                                                        )
+                                                                            .at(
+                                                                                j
+                                                                            )
+                                                                            .get(
+                                                                                'productId'
+                                                                            )
+                                                                            ?.invalid ||
+                                                                            getProductQuantities(
+                                                                                i
+                                                                            )
+                                                                                .at(
+                                                                                    j
+                                                                                )
+                                                                                .get(
+                                                                                    'quantity'
+                                                                                )
+                                                                                ?.invalid) &&
+                                                                        getProductQuantities(
+                                                                            i
+                                                                        ).at(j)
+                                                                            .touched
+                                                                    " class="text-red-500 text-xs ml-4">
+                                                                    Product and
+                                                                    quantity are
+                                                                    required
+                                                                </div>
+                                                            </ng-container>
+                                                        </div>
+
+                                                        <!-- Products Error -->
+                                                        <div *ngIf="
+                                                                items
+                                                                    .at(i)
+                                                                    .get(
+                                                                        'productQuantities'
+                                                                    )
+                                                                    ?.invalid &&
+                                                                items
+                                                                    .at(i)
+                                                                    .get(
+                                                                        'productQuantities'
+                                                                    )?.touched
+                                                            " class="text-red-500 text-xs ml-1">
+                                                            At least one product
+                                                            is required
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ng-container>
+                                        </div>
+                                    </div>
+
+                                    <!-- Totals -->
+                                    <div class="bg-gradient-to-r from-gray-800 to-blue-600 rounded-lg p-6">
+                                        <div class="grid grid-cols-1 gap-4 text-center">
+                                            <div>
+                                                <p class="text-sm text-gray-300">
+                                                    Total Quantity
+                                                </p>
+                                                <p class="text-2xl font-bold text-white mt-1">
+                                                    {{ getTotalQuantity() }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div
+                                        class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                        <button type="button" (click)="resetForm()"
+                                            class="px-5 py-2.5 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium">
+                                            Reset
+                                        </button>
+
+                                        <button type="submit" [disabled]="
+                                                bookingForm.invalid ||
+                                                isCreatingBooking
+                                            " [class.opacity-50]="
+                                                bookingForm.invalid ||
+                                                isCreatingBooking
+                                            "
+                                            class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium">
+                                            <span *ngIf="!isCreatingBooking">Create Booking</span>
+                                            <span *ngIf="isCreatingBooking">Creating...</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Product Reference -->
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                                <!-- Card Header -->
+                                <!-- <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                                    <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                        Available Products
+                                    </h4>
+                                </div> -->
+
+                                <!-- Product List -->
+                                <!-- <div class="p-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <span
+                *ngFor="let product of productClassifications"
+                class="px-4 py-3 rounded-md bg-gray-100 dark:bg-gray-700
+                       text-gray-700 dark:text-gray-300
+                       text-sm font-medium text-center"
+            >
+                {{ product.productCode }}
+            </span>
+        </div>
+    </div> -->
+                            </div>
+                        </div>
+
+                        <!-- RIGHT PANEL -->
+                        <div class="space-y-6">
+                            <!-- Recent Bookings -->
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                                <!-- Card Header -->
+                                <div
+                                    class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between">
+                                        <div>
+                                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                                Recent Bookings
+                                            </h3>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                Latest bookings from the system
+                                            </p>
+                                        </div>
+                                        <div class="mt-2 sm:mt-0 flex gap-3">
+                                            <input type="date"
+                                                class="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm" />
+                                            <button
+                                                class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium">
+                                                Filter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Table Container -->
+                                <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                                    <!-- Table Header with Stats -->
+                                    <div
+                                        class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between">
+                                            <div>
+                                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                                    Bookings
+                                                </h3>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                    Showing
+                                                    {{ bookings.length }} of
+                                                    {{ totalCount }} total
+                                                    bookings
+                                                </p>
+                                            </div>
+                                            <div class="mt-2 sm:mt-0 text-sm text-gray-600 dark:text-gray-400">
+                                                Page {{ currentPage }} of
+                                                {{ totalPages }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Table -->
+                                    <div class="overflow-x-auto">
+                                        <table
+                                            class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white">
+                                            <thead class="bg-gray-50 dark:bg-gray-900/50">
+                                                <tr>
+                                                    <th
+                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                                        ID
+                                                    </th>
+                                                    <th
+                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                                        Booking Date
+                                                    </th>
+                                                    <th
+                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                                        Customers
+                                                    </th>
+                                                    <th
+                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                                        Remarks
+                                                    </th>
+                                                    <th
+                                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                        Created At
+                                                    </th>
+                                                </tr>
+                                            </thead>
+
+                                            <!-- Each booking -->
+                                            <tbody *ngFor="let booking of bookings"
+                                                class="bg-white divide-y divide-gray-200 dark:divide-gray-700 group">
+                                                <tr
+                                                    class="transition-colors cursor-pointer bg-white dark:bg-gray-800 group-hover:bg-gray-50 dark:group-hover:bg-gray-700/50">
+                                                    <!-- Booking ID -->
+                                                    <td
+                                                        class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                                        <div
+                                                            class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                            {{ booking.id }}
+                                                        </div>
+                                                    </td>
+
+                                                    <!-- Booking Date -->
+                                                    <td
+                                                        class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                            {{
+                                                            booking.bookingDate
+                                                            | date
+                                                            : "mediumDate"
+                                                            }}
+                                                        </div>
+                                                    </td>
+
+                                                    <!-- Customer Count -->
+                                                    <td
+                                                        class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                                        <span
+                                                            class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                            {{
+                                                            booking.customerCount
+                                                            }}
+                                                            {{
+                                                            booking.customerCount ===
+                                                            1
+                                                            ? "Customer"
+                                                            : "Customers"
+                                                            }}
+                                                        </span>
+                                                    </td>
+
+                                                    <!-- Remarks -->
+                                                    <td
+                                                        class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
+                                                        <div class="text-sm text-gray-900 dark:text-gray-100">
+                                                            {{
+                                                            booking.remarks ||
+                                                            "-"
+                                                            }}
+                                                        </div>
+                                                    </td>
+
+                                                    <!-- Created At -->
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                                                            {{
+                                                            booking.createdAt
+                                                            | date
+                                                            : "medium"
+                                                            }}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+
+                                            <!-- Empty State -->
+                                            <tbody *ngIf="bookings.length === 0">
+                                                <tr>
+                                                    <td colspan="5"
+                                                        class="px-6 py-12 text-center bg-white dark:bg-gray-800">
+                                                        <div class="flex flex-col items-center justify-center">
+                                                            <mat-icon class="text-gray-400 dark:text-gray-500 mb-3"
+                                                                style="
+                                                                    font-size: 48px;
+                                                                    height: 48px;
+                                                                    width: 48px;
+                                                                ">
+                                                                inventory_2
+                                                            </mat-icon>
+                                                            <h3
+                                                                class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
+                                                                No bookings
+                                                                found
+                                                            </h3>
+                                                            <p class="text-gray-500 dark:text-gray-400 mb-4">
+                                                                {{
+                                                                searchTerm
+                                                                ? "Try adjusting your search criteria"
+                                                                : "Create your first booking to get started"
+                                                                }}
+                                                            </p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Pagination -->
+
+                                    <div *ngIf="
+                                            totalPages > 1 &&
+                                            bookings.length > 0
+                                        "
+                                        class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                            <!-- Replace this section in your template -->
+                                            <div class="text-sm text-gray-700 dark:text-gray-300 mb-4 sm:mb-0">
+                                                Showing
+                                                <span class="font-medium">{{ getShowingFrom() }}</span>
+                                                to
+                                                <span class="font-medium">{{ getShowingTo() }}</span>
+                                                of
+                                                <span class="font-medium">{{ totalCount }}</span>
+                                                results
+                                            </div>
+
+                                            <!-- Pagination Controls -->
+                                            <nav class="flex items-center space-x-1">
+                                                <!-- Previous Button -->
+                                                <button mat-icon-button [disabled]="
+                                                        currentPage === 1
+                                                    " (click)="
+                                                        onPageChange(
+                                                            currentPage - 1
+                                                        )
+                                                    " class="!h-9 !w-9" matTooltip="Previous page">
+                                                    <mat-icon class="!w-4 !h-4">chevron_left</mat-icon>
+                                                </button>
+
+                                                <!-- Page Numbers -->
+                                                <ng-container *ngFor="
+                                                        let page of getPages()
+                                                    ">
+                                                    <button *ngIf="page !== '...'" mat-icon-button
+                                                        [class.bg-primary-50]="
+                                                            page === currentPage
+                                                        " [class.text-primary-600]="
+                                                            page === currentPage
+                                                        " [class.dark:bg-primary-900]="
+                                                            page === currentPage
+                                                        " [class.dark:text-primary-200]="
+                                                            page === currentPage
+                                                        " (click)="
+                                                            onPageChange(page)
+                                                        " class="!h-9 !w-9">
+                                                        {{ page }}
+                                                    </button>
+                                                    <span *ngIf="page === '...'"
+                                                        class="px-2 text-gray-400 dark:text-gray-500">
+                                                        ...
+                                                    </span>
+                                                </ng-container>
+
+                                                <!-- Next Button -->
+                                                <button mat-icon-button [disabled]="
+                                                        currentPage ===
+                                                        totalPages
+                                                    " (click)="
+                                                        onPageChange(
+                                                            currentPage + 1
+                                                        )
+                                                    " class="!h-9 !w-9" matTooltip="Next page">
+                                                    <mat-icon class="!w-4 !h-4">chevron_right</mat-icon>
+                                                </button>
+                                            </nav>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Booking Details -->
+                            <!-- <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                                
+                                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                                    <h4 class="text-lg font-medium text-gray-900 dark:text-gray-100">Booking Details
+                                    </h4>
+                                </div>
+
+                                
+                                <div class="p-6">
+                                    <div class="space-y-4">
+                                        <div class="flex items-start">
+                                            <span
+                                                class="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">Date:</span>
+                                            <span class="text-sm text-gray-900 dark:text-gray-100">Sep 1, 2025</span>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <span
+                                                class="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">Remarks:</span>
+                                            <span class="text-sm text-gray-600 dark:text-gray-400 italic">None</span>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <span
+                                                class="text-sm font-medium text-gray-700 dark:text-gray-300 w-32 flex-shrink-0">Created:</span>
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Sep 1, 2025 10:30
+                                                AM</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> -->
+                        </div>
+                    </div>
+                </div>
+            </mat-drawer-content>
+
+            <!-- Right Side Drawer -->
+            <mat-drawer #rightDrawer position="end" mode="over" class="w-80">
+                <div class="h-full flex flex-col bg-white dark:bg-gray-800">
+                    <!-- Drawer Header -->
+                    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                            Booking Menu
+                        </h3>
+                        <button mat-icon-button (click)="rightDrawer.close()" aria-label="Close drawer"
+                            class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+
+                    <!-- Drawer Content -->
+                    <div class="flex-1 overflow-auto p-6">
+                        <app-booking-sidenav></app-booking-sidenav>
+                    </div>
+                </div>
+            </mat-drawer>
+        </mat-drawer-container>
     </div>
-
-    <!-- Material Right Drawer -->
-    <mat-drawer-container class="h-full" autosize>
-        <!-- Main content (left side) -->
-        <mat-drawer-content class="h-full">
-            <!-- Your existing main content will be wrapped here -->
-        </mat-drawer-content>
-
-        <!-- Right Side Drawer -->
-        <mat-drawer #rightDrawer position="end" mode="over" class="w-80">
-            <div class="h-full flex flex-col">
-                <!-- Drawer Header -->
-                <div class="flex items-center justify-between p-4 border-b">
-                    <h3 class="text-lg font-semibold">Booking Menu</h3>
-                    <button mat-icon-button (click)="rightDrawer.close()" aria-label="Close drawer">
-                        <mat-icon>close</mat-icon>
-                    </button>
-                </div>
-                
-                <!-- Drawer Content -->
-                <div class="flex-1 overflow-auto p-4">
-                    <app-booking-sidenav></app-booking-sidenav>
-                </div>
-            </div>
-        </mat-drawer>
-    </mat-drawer-container>
 </div>

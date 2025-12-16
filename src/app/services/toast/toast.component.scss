@@ -1,0 +1,24 @@
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10000;
+    pointer-events: none; // allows clicking through if needed
+}
+
+.toast {
+    min-width: 260px;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    pointer-events: auto;
+    will-change: transform, opacity;
+}
+
+.success { background-color: #4caf50; }
+.error   { background-color: #f44336; }
+.info    { background-color: #2196f3; }
+.warning { background-color: #ff9800; }
