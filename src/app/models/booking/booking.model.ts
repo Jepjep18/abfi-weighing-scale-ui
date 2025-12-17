@@ -6,6 +6,7 @@ export interface CreateBooking {
 
 export interface BookingItem {
   customerName: string;
+  customerType: string;
   isPrio: boolean;
   productQuantities: { [productId: number]: number };
 }

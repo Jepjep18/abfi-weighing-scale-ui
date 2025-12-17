@@ -106,6 +106,7 @@ export class BookingComponent implements OnInit {
     addCustomer(): void {
         const customerGroup = this.fb.group({
             customerName: ['', [Validators.required, Validators.minLength(1)]],
+            customerType: ['', [Validators.required, Validators.minLength(1)]],
             isPrio: [false],
             productQuantities: this.fb.array([], Validators.required), // At least one product required
         });
@@ -185,6 +186,7 @@ export class BookingComponent implements OnInit {
             remarks: formValue.remarks || '',
             items: formValue.items.map((item: any) => ({
                 customerName: item.customerName,
+                customerType: item.customerType,
                 isPrio: item.isPrio,
                 productQuantities: this.convertToProductQuantities(
                     item.productQuantities
