@@ -6,7 +6,6 @@ export interface CreateBooking {
 
 export interface BookingItem {
   customerName: string;
-  customerType: string;
   isPrio: boolean;
   productQuantities: { [productId: number]: number };
 }
@@ -59,4 +58,42 @@ export interface BookingItemResponse {
   customerName: string;
   productCode: string;
   isPrio: boolean;
+}
+
+
+
+//for get by booking id endpoints
+
+export interface BookingDetailsResponse {
+  id: number;
+  bookingDate: string; // ISO string
+  remarks?: string;
+  createdAt: string; // ISO string
+  customerCount: number;
+  items: BookingItemDetailsDto[];
+}
+
+export interface BookingItemDetailsDto {
+  id: number;
+  quantity: number;
+  isPrio: boolean;
+  createdAt: string; // ISO string
+  customer: CustomerDetailsDto;
+  productClassification: ProductClassificationDetailsDto;
+}
+
+export interface CustomerDetailsDto {
+  id: number;
+  customerName: string;
+  customerType: string;
+}
+
+export interface ProductClassificationDetailsDto {
+  id: number;
+  productCode: string;
+  individualWeightRange: string;
+  totalWeightRangePerCrate: string;
+  noOfHeadsPerGalantina: number;
+  cratesWeight: string;
+  isActive: boolean;
 }
