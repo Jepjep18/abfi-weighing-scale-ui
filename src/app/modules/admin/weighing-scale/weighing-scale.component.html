@@ -3,8 +3,402 @@
     <!-- Main -->
     <div class="flex-auto p-6 sm:p-10">
 
-        <!-- CONTENT GOES HERE -->
-        <div class="h-400 min-h-400 max-h-400 border-2 border-dashed border-gray-300 rounded-2xl"></div>
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Weighing Scale System</h1>
+                    <p class="text-gray-600">Dual Port Weight Capture Interface</p>
+                </div>
+                
+                <!-- Production ID Selection & Control Buttons -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold text-gray-700">Production ID:</span>
+                        <select 
+                            [(ngModel)]="selectedProductionId"
+                            (change)="onProductionIdChange()"
+                            class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Production</option>
+                            <option value="PROD-001">PROD-001 - Daily Shift 1</option>
+                            <option value="PROD-002">PROD-002 - Daily Shift 2</option>
+                            <option value="PROD-003">PROD-003 - Night Shift</option>
+                            <option value="PROD-004">PROD-004 - Weekend Batch</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button 
+                            (click)="startWeighing()"
+                            [disabled]="isWeighingActive"
+                            [class]="'px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors ' + 
+                                     (isWeighingActive ? 'bg-green-100 text-green-700 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 12h14"/>
+                                <path d="M12 5v14"/>
+                            </svg>
+                            START
+                        </button>
+                        
+                        <button 
+                            (click)="stopWeighing()"
+                            [disabled]="!isWeighingActive"
+                            [class]="'px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors ' + 
+                                     (!isWeighingActive ? 'bg-red-100 text-red-700 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 text-white')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="6" y="6" width="12" height="12" rx="2"/>
+                            </svg>
+                            STOP
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics & Status Bar -->
+<div class="shadow-lg p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <!-- Overall Total -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-semibold text-blue-700">TOTAL WEIGHT</div>
+                    <div class="text-2xl font-bold mt-1 text-blue-800">{{ calculateTotalWeight().toFixed(1) }} KG</div>
+                    <div class="text-xs text-blue-600 mt-1">Overall Production</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                     class="text-blue-500">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                    <path d="M3 6h18"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Port 1 Total -->
+        <div class="bg-green-50 border border-green-200 rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-semibold text-green-700">PORT 1 TOTAL</div>
+                    <div class="text-2xl font-bold mt-1 text-green-800">{{ port1Total.toFixed(1) }} KG</div>
+                    <div class="text-xs text-green-600 mt-1">{{ getPort1Logs().length }} records</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                     class="text-green-500">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Port 2 Total -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-semibold text-purple-700">PORT 2 TOTAL</div>
+                    <div class="text-2xl font-bold mt-1 text-purple-800">{{ port2Total.toFixed(1) }} KG</div>
+                    <div class="text-xs text-purple-600 mt-1">{{ getPort2Logs().length }} records</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                     class="text-purple-500">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Session Stats -->
+        <div class="bg-orange-50 border border-orange-200 rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-semibold text-orange-700">SESSION STATS</div>
+                    <div class="text-xl font-bold mt-1 text-orange-800">{{ sessionLogsCount }} logs</div>
+                    <div class="text-xs text-orange-600 mt-1">{{ sessionDuration }}</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                     class="text-orange-500">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div [class]="'rounded-full w-3 h-3 ' + (isWeighingActive ? 'animate-pulse bg-green-500' : 'bg-gray-400')"></div>
+                <span class="font-semibold text-gray-700">System Status:</span>
+                <span [class]="'font-semibold ' + (isWeighingActive ? 'text-green-600' : 'text-gray-600')">
+                    {{ isWeighingActive ? 'ACTIVE - Auto Logging' : 'STANDBY - Manual Mode' }}
+                </span>
+                <span *ngIf="selectedProductionId" class="ml-4 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full">
+                    {{ selectedProductionId }}
+                </span>
+            </div>
+            <div class="flex items-center gap-6 text-sm text-gray-600">
+                <div>
+                    Total Logs: <span class="font-semibold text-blue-600">{{ logs.length }}</span>
+                </div>
+                <div>
+                    Session Weight: <span class="font-semibold text-green-600">{{ sessionTotalWeight.toFixed(1) }} KG</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- Weighing Ports -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            
+            <!-- Port 1 -->
+            <div [class]="'border-2 rounded-lg p-6 transition-all ' + getPortBorderClass(port1Data)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                             [class]="getPortTextClass(port1Data)">
+                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                            <path d="M5 3v4"/>
+                            <path d="M19 17v4"/>
+                            <path d="M3 5h4"/>
+                            <path d="M17 19h4"/>
+                        </svg>
+                        <h2 class="text-xl font-bold">PORT 1</h2>
+                        <span class="text-sm font-semibold px-2 py-1 bg-green-100 text-green-800 rounded">
+                            Total: {{ port1Total.toFixed(1) }} KG
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                             [class]="getConnectionStatusClass(port1Data)">
+                            <path d="M5 13a10 10 0 0 1 14 0"/>
+                            <path d="M8.5 16.5a5 5 0 0 1 7 0"/>
+                            <path d="M2 8.82a15 15 0 0 1 20 0"/>
+                            <line x1="12" x2="12.01" y1="20" y2="20"/>
+                        </svg>
+                        <span [class]="'text-sm ' + getConnectionTextClass(port1Data)">
+                            {{ getConnectionStatusText(port1Data) }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-black text-green-400 font-mono text-3xl p-6 rounded mb-4 text-center">
+                    {{ port1Data.qty.toFixed(1) }} {{ port1Data.uom }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Product Code</div>
+                        <div class="font-semibold">{{ port1Data.prodCode || 'N/A' }}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Heads</div>
+                        <div class="font-semibold">{{ port1Data.heads || 'N/A' }}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Class</div>
+                        <div class="font-semibold">{{ port1Data.class }}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Status</div>
+                        <div [class]="'font-semibold flex items-center gap-1 ' + getStatusClass(port1Data.status)">
+                            <svg *ngIf="port1Data.status === 'Captured'" xmlns="http://www.w3.org/2000/svg" 
+                                 width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <svg *ngIf="port1Data.status === 'Error'" xmlns="http://www.w3.org/2000/svg" 
+                                 width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" x2="12" y1="8" y2="12"/>
+                                <line x1="12" x2="12.01" y1="16" y2="16"/>
+                            </svg>
+                            {{ port1Data.status }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100 p-2 rounded mb-4 text-xs font-mono overflow-x-auto">
+                    {{ port1Data.serialData }}
+                </div>
+
+                <div [class]="'border rounded p-3 text-center ' + (isWeighingActive ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200')">
+                    <div [class]="'flex items-center justify-center gap-2 ' + (isWeighingActive ? 'text-blue-700' : 'text-gray-500')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" 
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                             stroke-linejoin="round">
+                            <path d="m7.5 4.27 9 5.15"/>
+                            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                            <path d="m3.3 7 8.7 5 8.7-5"/>
+                            <path d="M12 22V12"/>
+                        </svg>
+                        <span class="font-semibold">
+                            {{ isWeighingActive ? 'AUTO CAPTURE MODE' : 'MANUAL MODE' }}
+                        </span>
+                    </div>
+                    <div [class]="'text-xs mt-1 ' + (isWeighingActive ? 'text-blue-600' : 'text-gray-600')">
+                        {{ isWeighingActive ? 'Weights automatically logged to database' : 'System on standby' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Port 2 -->
+            <div [class]="'border-2 rounded-lg p-6 transition-all ' + getPortBorderClass(port2Data)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                             [class]="getPortTextClass(port2Data)">
+                            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                            <path d="M5 3v4"/>
+                            <path d="M19 17v4"/>
+                            <path d="M3 5h4"/>
+                            <path d="M17 19h4"/>
+                        </svg>
+                        <h2 class="text-xl font-bold">PORT 2</h2>
+                        <span class="text-sm font-semibold px-2 py-1 bg-purple-100 text-purple-800 rounded">
+                            Total: {{ port2Total.toFixed(1) }} KG
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" 
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                             [class]="getConnectionStatusClass(port2Data)">
+                            <path d="M5 13a10 10 0 0 1 14 0"/>
+                            <path d="M8.5 16.5a5 5 0 0 1 7 0"/>
+                            <path d="M2 8.82a15 15 0 0 1 20 0"/>
+                            <line x1="12" x2="12.01" y1="20" y2="20"/>
+                        </svg>
+                        <span [class]="'text-sm ' + getConnectionTextClass(port2Data)">
+                            {{ getConnectionStatusText(port2Data) }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-black text-green-400 font-mono text-3xl p-6 rounded mb-4 text-center">
+                    {{ port2Data.qty.toFixed(1) }} {{ port2Data.uom }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Product Code</div>
+                        <div class="font-semibold">{{ port2Data.prodCode || 'N/A' }}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Heads</div>
+                        <div class="font-semibold">{{ port2Data.heads || 'N/A' }}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Class</div>
+                        <div class="font-semibold">{{ port2Data.class }}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded">
+                        <div class="text-gray-500 text-xs">Status</div>
+                        <div [class]="'font-semibold flex items-center gap-1 ' + getStatusClass(port2Data.status)">
+                            <svg *ngIf="port2Data.status === 'Captured'" xmlns="http://www.w3.org/2000/svg" 
+                                 width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                <polyline points="22 4 12 14.01 9 11.01"/>
+                            </svg>
+                            <svg *ngIf="port2Data.status === 'Error'" xmlns="http://www.w3.org/2000/svg" 
+                                 width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" x2="12" y1="8" y2="12"/>
+                                <line x1="12" x2="12.01" y1="16" y2="16"/>
+                            </svg>
+                            {{ port2Data.status }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-100 p-2 rounded mb-4 text-xs font-mono overflow-x-auto">
+                    {{ port2Data.serialData }}
+                </div>
+
+                <div [class]="'border rounded p-3 text-center ' + (isWeighingActive ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200')">
+                    <div [class]="'flex items-center justify-center gap-2 ' + (isWeighingActive ? 'text-blue-700' : 'text-gray-500')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" 
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                             stroke-linejoin="round">
+                            <path d="m7.5 4.27 9 5.15"/>
+                            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                            <path d="m3.3 7 8.7 5 8.7-5"/>
+                            <path d="M12 22V12"/>
+                        </svg>
+                        <span class="font-semibold">
+                            {{ isWeighingActive ? 'AUTO CAPTURE MODE' : 'MANUAL MODE' }}
+                        </span>
+                    </div>
+                    <div [class]="'text-xs mt-1 ' + (isWeighingActive ? 'text-blue-600' : 'text-gray-600')">
+                        {{ isWeighingActive ? 'Weights automatically logged to database' : 'System on standby' }}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Recent Logs Table -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Recent Weighing Logs</h2>
+                <div class="text-sm text-gray-600">
+                    <span class="font-semibold">Session Total: {{ sessionTotalWeight.toFixed(1) }} KG</span> | 
+                    <span class="ml-2">Duration: {{ sessionDuration }}</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-3 text-left">ID</th>
+                            <th class="p-3 text-left">Serial Data</th>
+                            <th class="p-3 text-right">Qty</th>
+                            <th class="p-3 text-left">UoM</th>
+                            <th class="p-3 text-left">Heads</th>
+                            <th class="p-3 text-left">Prod Code</th>
+                            <th class="p-3 text-left">Prod ID</th>
+                            <th class="p-3 text-left">Date Time</th>
+                            <th class="p-3 text-left">Port</th>
+                            <th class="p-3 text-left">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let log of logs; let i = index" 
+                            [class]="i % 2 === 0 ? 'bg-gray-50' : 'bg-white'">
+                            <td class="p-3">{{ log.id }}</td>
+                            <td class="p-3 font-mono text-xs">{{ log.serialData }}</td>
+                            <td class="p-3 text-right font-semibold">{{ log.qty }}</td>
+                            <td class="p-3">{{ log.uom }}</td>
+                            <td class="p-3">{{ log.heads }}</td>
+                            <td class="p-3">
+                                <span [class]="'px-2 py-1 rounded text-xs font-semibold ' + getProdCodeClass(log.prodCode)">
+                                    {{ log.prodCode }}
+                                </span>
+                            </td>
+                            <td class="p-3">
+                                <span class="px-2 py-1 rounded text-xs font-semibold bg-purple-100 text-purple-800">
+                                    {{ log.productionId || 'N/A' }}
+                                </span>
+                            </td>
+                            <td class="p-3 text-xs">{{ log.createdDateTime }}</td>
+                            <td class="p-3 text-xs">{{ log.portNumber }}</td>
+                            <td class="p-3 text-xs text-gray-500">{{ log.remarks || '-' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     </div>
 
