@@ -23,6 +23,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BookingViewComponent } from './booking-view/booking-view.component';
+import { BookingCreateComponent } from './booking-create/booking-create.component';
 
 const routes: Routes = [
   {
@@ -32,11 +33,15 @@ const routes: Routes = [
   {
     path: 'view/:id',
     component: BookingViewComponent,
+  },
+  {
+    path: 'create',
+    component: BookingCreateComponent,
   }
 ];
 
 @NgModule({
-    declarations: [BookingComponent, BookingSidenavComponent, BookingViewComponent],
+    declarations: [BookingComponent, BookingSidenavComponent, BookingViewComponent, BookingCreateComponent],
     imports: [
     // Core Angular Modules (MUST BE FIRST)
     CommonModule,

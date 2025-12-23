@@ -1,13 +1,21 @@
 export interface CreateBooking {
-  bookingDate: string; // ISO string date
+  bookingDate: string; 
   remarks?: string;
   items: BookingItem[];
 }
 
 export interface BookingItem {
-  customerName: string;
+  customerId: number; 
   isPrio: boolean;
+  advancePayment?: AdvancePayment | null; 
   productQuantities: { [productId: number]: number };
+}
+
+export interface AdvancePayment {
+  advanceAmount: number;
+  paymentDate: string; 
+  paymentMethod: string;
+  referenceNumber?: string | null;
 }
 
 // Booking Response DTO
@@ -16,15 +24,30 @@ export interface BookingResponse {
   bookingDate: string;
   remarks?: string;
   createdAt: string;
-  customerCount: number;
-  // items?: BookingItemResponse[]; // optional if you want to include items
+  items: BookingResponseItem[];
+  customerAdvances?: CustomerAdvance[]; // If returned in response
 }
 
 // Optional Booking Item Response
-export interface BookingItemResponse {
-  customerName: string;
+export interface BookingResponseItem {
+  id: number;
+  customerId: number;
+  customerName: string; // Might be populated in response
   isPrio: boolean;
-  productQuantities: { [productId: number]: number };
+  productClassificationId: number;
+  productName?: string; // If you want to display
+  quantity: number;
+  createdAt: string;
+}
+
+export interface CustomerAdvance {
+  id: number;
+  customerId: number;
+  customerName?: string;
+  advanceAmount: number;
+  paymentDate: string;
+  paymentMethod: string;
+  referenceNumber?: string;
 }
 
 export interface ApiErrorResponse {
