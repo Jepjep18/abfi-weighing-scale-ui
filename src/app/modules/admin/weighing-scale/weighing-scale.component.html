@@ -15,19 +15,32 @@
     <!-- Actions -->
     <div class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4 space-x-2">
         <!-- Production ID Selection -->
-        <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-gray-700">Production ID:</span>
-            <select 
-                [(ngModel)]="selectedProductionId"
-                (change)="onProductionIdChange()"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                <option value="">Select Production</option>
-                <option value="PROD-001">PROD-001 - Daily Shift 1</option>
-                <option value="PROD-002">PROD-002 - Daily Shift 2</option>
-                <option value="PROD-003">PROD-003 - Night Shift</option>
-                <option value="PROD-004">PROD-004 - Weekend Batch</option>
-            </select>
-        </div>
+<div class="flex items-center gap-2">
+    <span class="text-sm font-medium text-gray-700">Production ID:</span>
+    
+    <!-- Loading state -->
+    <div *ngIf="isLoadingProductions" class="text-sm text-gray-500">
+        Loading productions...
+    </div>
+    
+    <!-- Error state -->
+    <div *ngIf="productionError" class="text-sm text-red-500">
+        {{ productionError }}
+    </div>
+    
+    <!-- Dropdown -->
+    <select 
+        *ngIf="!isLoadingProductions"
+        [(ngModel)]="selectedProductionId"
+        (change)="onProductionIdChange()"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        [disabled]="productionError && productionOptions.length === 0">
+        <option value="">Select Production</option>
+        <option *ngFor="let production of productionOptions" [value]="production.id">
+            {{ production.displayText }}
+        </option>
+    </select>
+</div>
         
         <!-- Control Buttons -->
         <div class="flex gap-2">
@@ -164,7 +177,7 @@
         <div class="flex flex-col gap-4">
             
             <!-- Weighing Ports -->
-            <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-4 mt-4">
                 
                 <!-- Port 1 -->
                 <div [class]="'border-2 rounded-lg bg-white transition-all ' + getPortBorderClass(port1Data)">
