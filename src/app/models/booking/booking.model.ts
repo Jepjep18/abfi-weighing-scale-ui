@@ -13,9 +13,6 @@ export interface BookingItem {
 
 export interface AdvancePayment {
   advanceAmount: number;
-  paymentDate: string; 
-  paymentMethod: string;
-  referenceNumber?: string | null;
 }
 
 // Booking Response DTO
@@ -46,9 +43,8 @@ export interface CustomerAdvance {
   customerName?: string;
   advanceAmount: number;
   paymentDate: string;
-  paymentMethod: string;
-  referenceNumber?: string;
 }
+
 
 export interface ApiErrorResponse {
   message?: string;

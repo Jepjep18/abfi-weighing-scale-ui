@@ -1,332 +1,469 @@
-<div class="container mx-auto px-4 py-8 max-w-6xl">
-  <!-- Header with back button -->
-  <div class="mb-6 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <button 
-        (click)="goBack()"
-        class="flex items-center text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
-      >
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-        </svg>
-        Back to Bookings
-      </button>
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-        Booking Details
-        <span *ngIf="bookingDetails" class="text-gray-500 dark:text-gray-400 ml-2">
-          #{{ bookingDetails.id }}
-        </span>
-      </h1>
+<div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden bg-gray-50">
+  <!-- Header -->
+  <div class="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="flex items-center space-x-4">
+          <button (click)="goBack()" class="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-2xl font-semibold text-gray-900">Booking Allocation #{{ bookingId }}</h1>
+            <p class="text-sm text-gray-500 mt-1">Allocate booked quantities to customers</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button (click)="undo()" [disabled]="!canUndo()" 
+          class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+          </svg>
+          Undo
+        </button>
+        <button (click)="redo()" [disabled]="!canRedo()"
+          class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6"/>
+          </svg>
+          Redo
+        </button>
+        <button (click)="retry()" [disabled]="isLoading"
+          class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
+          <svg *ngIf="!isLoading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <svg *ngIf="isLoading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
+          {{ isLoading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+      </div>
     </div>
-    
-    <!-- Refresh button -->
-    <button 
-      (click)="retry()"
-      [disabled]="isLoading"
-      class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-    >
-      <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <svg *ngIf="!isLoading" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-      </svg>
-      Refresh
-    </button>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="isLoading" class="text-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading booking details...</p>
+  <div *ngIf="isLoading" class="flex-1 flex items-center justify-center">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading booking details...</p>
+    </div>
   </div>
 
   <!-- Error State -->
-  <div *ngIf="error && !isLoading" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center">
-    <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-    </svg>
-    <h3 class="text-lg font-medium text-red-800 dark:text-red-200 mb-2">Unable to load booking</h3>
-    <p class="text-red-700 dark:text-red-300 mb-4">{{ error.message }}</p>
-    <button 
-      (click)="retry()"
-      class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-    >
-      Try Again
-    </button>
+  <div *ngIf="error && !isLoading" class="flex-1 flex items-center justify-center">
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md">
+      <svg class="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <h3 class="text-lg font-medium text-red-800 mb-2">Unable to load booking</h3>
+      <p class="text-red-700 mb-4">{{ error.message }}</p>
+      <button (click)="retry()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+        Try Again
+      </button>
+    </div>
   </div>
 
-  <!-- Booking Details -->
-  <div *ngIf="bookingDetails && !isLoading" class="space-y-6">
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Booking Date</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
-              {{ getFormattedDate(bookingDetails.bookingDate) }}
-            </p>
-          </div>
-          <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-          </div>
+  <!-- Allocation UI -->
+  <div *ngIf="bookingDetails && !isLoading" class="flex-1 flex flex-col overflow-hidden">
+    <!-- Filters and Search -->
+    <div class="bg-white border-b border-gray-200 px-6 py-3 flex-shrink-0">
+      <div class="flex items-center gap-4">
+        <div class="flex-1 relative">
+          <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" 
+            placeholder="Search customers..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+
+        <div class="flex gap-2 flex-wrap">
+          <ng-container *ngFor="let type of customerTypes">
+            <button (click)="filterType = type; applyFilters()"
+              [class.bg-blue-600]="filterType === type"
+              [class.text-white]="filterType === type"
+              [class.border-blue-600]="filterType === type"
+              class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm font-medium">
+              {{ getCustomerTypeLabel(type) }}
+            </button>
+          </ng-container>
         </div>
       </div>
+    </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Customers</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
-              {{ bookingDetails.customerCount }}
-            </p>
-          </div>
-          <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-            <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
+    <!-- Allocation Summary Cards -->
+    <div class="sticky top-0 z-30 bg-gray-50 px-6 pt-4 pb-4 flex-shrink-0 border-b border-gray-200">
+      <div class="grid grid-cols-5 gap-4">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-gray-500 mb-1">Total Customers</div>
+              <div class="text-3xl font-bold text-gray-900">{{ filteredCustomers.length }}</div>
+            </div>
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Quantity</p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white mt-1">
-              {{ getTotalQuantity() }}
-            </p>
-          </div>
-          <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-gray-500 mb-1">Total Booked</div>
+              <div class="text-3xl font-bold text-blue-600">{{ getGrandTotal() }}</div>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Created</p>
-            <p class="text-lg font-semibold text-gray-900 dark:text-white mt-1">
-              {{ getFormattedDate(bookingDetails.createdAt) }}
-            </p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              {{ getFormattedTime(bookingDetails.createdAt) }}
-            </p>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-gray-500 mb-1">Total Allocated</div>
+              <div class="text-3xl font-bold text-green-600">{{ getTotalAllocated() }}</div>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
           </div>
-          <div class="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-            <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-gray-500 mb-1">Remaining</div>
+              <div class="text-3xl font-bold text-orange-600">{{ getTotalRemaining() }}</div>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm text-gray-500 mb-1">Completion</div>
+              <div class="text-3xl font-bold text-purple-600">
+                {{ getGrandTotal() > 0 ? ((getTotalAllocated() / getGrandTotal()) * 100).toFixed(1) : '0' }}%
+              </div>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="border-b border-gray-200 dark:border-gray-700">
-      <nav class="-mb-px flex space-x-8">
-        <button 
-          [class]="activeTab === 'details' 
-            ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400' 
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
-          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
-          (click)="setActiveTab('details')"
-        >
-          Booking Details
-        </button>
-        <button 
-          [class]="activeTab === 'items' 
-            ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400' 
-            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'"
-          class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
-          (click)="setActiveTab('items')"
-        >
-          Booking Items ({{ bookingDetails.items.length }})
-        </button>
-      </nav>
-    </div>
-
-    <!-- Details Tab -->
-    <div *ngIf="activeTab === 'details'" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Booking Information</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-4">
-          <div>
-            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Remarks</label>
-            <p class="mt-1 text-gray-900 dark:text-white">
-              {{ bookingDetails.remarks || 'No remarks' }}
-            </p>
-          </div>
-          
-          <div>
-            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Booking ID</label>
-            <p class="mt-1 text-gray-900 dark:text-white">#{{ bookingDetails.id }}</p>
-          </div>
-          
-          <div>
-            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Booking Date</label>
-            <p class="mt-1 text-gray-900 dark:text-white">
-              {{ getFormattedDateTime(bookingDetails.bookingDate) }}
-            </p>
-          </div>
-        </div>
+    <!-- Main Content -->
+    <div class="flex-1 overflow-hidden px-6 pb-4">
+      <div class="bg-white rounded-lg border border-gray-200 h-full overflow-auto">
         
-        <div class="space-y-4">
-          <div>
-            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Created At</label>
-            <p class="mt-1 text-gray-900 dark:text-white">
-              {{ getFormattedDateTime(bookingDetails.createdAt) }}
-            </p>
-          </div>
-          
-          <div>
-            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Unique Customers</label>
-            <p class="mt-1 text-gray-900 dark:text-white">
-              {{ getUniqueCustomers().join(', ') || 'None' }}
-            </p>
-          </div>
-          
-          <div>
-            <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Unique Products</label>
-            <p class="mt-1 text-gray-900 dark:text-white">
-              {{ getUniqueProducts().join(', ') || 'None' }}
-            </p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Statistics -->
-      <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Statistics</h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-            <p class="text-sm text-gray-600 dark:text-gray-400">Priority Items</p>
-            <p class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ getPrioItemsCount() }}
-            </p>
-            <p class="text-sm text-gray-500 dark:text-gray-500">
-              Quantity: {{ getPrioItemsTotal() }}
-            </p>
-          </div>
-          
-          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-            <p class="text-sm text-gray-600 dark:text-gray-400">Regular Items</p>
-            <p class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ getRegularItemsCount() }}
-            </p>
-            <p class="text-sm text-gray-500 dark:text-gray-500">
-              Quantity: {{ getRegularItemsTotal() }}
-            </p>
-          </div>
-          
-          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-            <p class="text-sm text-gray-600 dark:text-gray-400">Total Items</p>
-            <p class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ bookingDetails.items.length }}
-            </p>
-          </div>
-          
-          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-            <p class="text-sm text-gray-600 dark:text-gray-400">Total Quantity</p>
-            <p class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ getTotalQuantity() }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Items Tab -->
-    <div *ngIf="activeTab === 'items'" class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-900">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Customer
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Product Code
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Quantity
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Priority
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Customer Type
-              </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Added At
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr *ngFor="let item of bookingDetails.items" 
-                [class.bg-yellow-50]="item.isPrio"
-                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div>
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ item.customer.customerName }}
+        <!-- Allocation Table View -->
+        <div class="relative">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th class="sticky left-0 top-0 z-40 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  Customer
+                </th>
+                <th class="sticky left-[200px] top-0 z-40 bg-gray-50 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  Customer Type
+                </th>
+                <th class="sticky top-0 z-30 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-yellow-50 border-r border-gray-300 min-w-[80px]">
+                  Priority
+                </th>
+                
+                <th *ngFor="let cat of getVisibleCategories()" class="sticky top-0 z-30 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-300 min-w-[180px] bg-gray-50">
+                  <div class="whitespace-nowrap overflow-hidden text-ellipsis px-1" [title]="cat.label">
+                    {{ cat.label }}
+                  </div>
+                  <div class="text-xs text-gray-400 mt-1">Booked / Allocated / Remaining</div>
+                </th>
+                <th class="sticky top-0 z-30 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-50 border-r border-gray-300 min-w-[150px]">
+                  Bulk Allocation Actions
+                </th>
+                <th class="sticky top-0 z-30 px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50 border-r border-gray-300 min-w-[120px]">
+                  <div>Total</div>
+                  <div class="text-xs text-gray-400 mt-1">Booked / Allocated / Remaining</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <!-- Customers -->
+              <tr *ngFor="let customer of filteredCustomers; let i = index" 
+                  class="hover:bg-gray-50 transition-colors group"
+                  [class.bg-blue-50]="hasBooking(customer.name)">
+                <td class="sticky left-0 z-20 px-6 py-3 border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-white group-hover:bg-gray-50">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="text-sm font-medium text-gray-900 flex items-center gap-2">
+                        {{ customer.name }}
+                      </div>
                     </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                      ID: {{ item.customer.id }}
+                    <span *ngIf="hasBooking(customer.name)" class="text-xs bg-blue-600 text-white px-2 py-1 rounded-full font-medium">
+                      Active
+                    </span>
+                  </div>
+                </td>
+                <td class="sticky left-[200px] z-20 px-6 py-3 border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-white group-hover:bg-gray-50">
+                  <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium w-fit"
+                    [class.bg-yellow-100]="customer.type === 'DISTRIBUTOR'"
+                    [class.text-yellow-800]="customer.type === 'DISTRIBUTOR'"
+                    [class.bg-blue-100]="customer.type === 'DEALER'" 
+                    [class.text-blue-800]="customer.type === 'DEALER'"
+                    [class.bg-green-100]="customer.type === 'NEW_ACCOUNT'"
+                    [class.text-green-800]="customer.type === 'NEW_ACCOUNT'"
+                    [class.bg-purple-100]="customer.type === 'ADDAO'"
+                    [class.text-purple-800]="customer.type === 'ADDAO'" 
+                    [class.bg-gray-100]="customer.type === 'LOTS'"
+                    [class.text-gray-800]="customer.type === 'LOTS'">
+                    {{ customer.type }}
+                  </span>
+                </td>
+                <td class="px-3 py-3 text-center bg-yellow-50 border-r border-gray-300">
+                  <input type="checkbox" [checked]="getIsPrio(customer.name)" disabled
+                    class="h-5 w-5 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500 cursor-not-allowed">
+                </td>
+                
+                
+                
+                <!-- Product Categories with Allocation -->
+                <td *ngFor="let cat of getVisibleCategories()" class="px-2 py-3 border-r border-gray-300 relative">
+                  <div class="flex flex-col items-center gap-2">
+                    <!-- Original booked quantity -->
+                    <div class="text-sm font-semibold text-blue-600">
+                      {{ getOriginalQuantity(customer.name, cat.name) }}
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div *ngIf="getOriginalQuantity(customer.name, cat.name) > 0" class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                           [style.width.%]="(getAllocatedQuantity(customer.name, cat.name) / getOriginalQuantity(customer.name, cat.name)) * 100">
+                      </div>
+                    </div>
+                    
+                    <!-- Display mode (when not editing) -->
+                    <div *ngIf="!(isEditingAllocation(customer.name, cat.name))" 
+                         class="flex flex-col items-center gap-1 w-full">
+                      <!-- Allocated quantity with edit button -->
+                      <div class="flex items-center justify-center gap-2">
+                        <span class="text-sm font-medium text-green-600">
+                          {{ getAllocatedQuantity(customer.name, cat.name) }}
+                        </span>
+                        <button *ngIf="getOriginalQuantity(customer.name, cat.name) > 0"
+                                (click)="startAllocation(customer.name, cat.name)"
+                                class="text-xs text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition-colors">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      <!-- Remaining quantity -->
+                      <div class="text-sm font-medium" 
+                           [class.text-red-600]="getRemainingQuantity(customer.name, cat.name) > 0"
+                           [class.text-gray-400]="getRemainingQuantity(customer.name, cat.name) === 0">
+                        {{ getRemainingQuantity(customer.name, cat.name) }}
+                      </div>
+                    </div>
+                    
+                    <!-- Edit mode (when editing) -->
+                    <div *ngIf="isEditingAllocation(customer.name, cat.name)"
+                         class="flex flex-col items-center gap-2 w-full p-2 bg-blue-50 rounded-lg border-2 border-blue-300">
+                      <!-- Quick allocation buttons -->
+                      <div class="flex gap-1 mb-1">
+                        <button *ngFor="let percent of [25, 50, 75, 100]"
+                                (click)="setAllocationPercent(percent)"
+                                class="px-2 py-1 text-xs bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors">
+                          {{ percent }}%
+                        </button>
+                      </div>
+                      
+                      <!-- Allocation input with range slider -->
+                      <input type="range" 
+                             [min]="0" 
+                             [max]="getOriginalQuantity(customer.name, cat.name)"
+                             [(ngModel)]="tempAllocationValue" 
+                             class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                      
+                      <div class="flex items-center gap-2 w-full">
+                        <input type="number" 
+                               [min]="0" 
+                               [max]="getOriginalQuantity(customer.name, cat.name)"
+                               [(ngModel)]="tempAllocationValue" 
+                               (keyup.enter)="saveAllocation()"
+                               (keyup.escape)="cancelAllocation()"
+                               class="flex-1 px-2 py-1 text-center border border-blue-300 rounded text-sm focus:ring-2 focus:ring-blue-500"
+                               placeholder="0"
+                               autofocus>
+                        <span class="text-xs text-gray-600 font-medium">
+                          / {{ getOriginalQuantity(customer.name, cat.name) }}
+                        </span>
+                      </div>
+                      
+                      <!-- Action buttons -->
+                      <div class="flex gap-1 w-full">
+                        <button (click)="saveAllocation()" 
+                                class="flex-1 px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 flex items-center justify-center gap-1 transition-colors">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Save
+                        </button>
+                        <button (click)="cancelAllocation()" 
+                                class="flex-1 px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 flex items-center justify-center gap-1 transition-colors">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Cancel
+                        </button>
+                      </div>
+                      
+                      <!-- Keyboard hints -->
+                      <div class="text-xs text-gray-500 mt-1">
+                        <span class="font-mono bg-white px-1 rounded">Enter</span> to save, 
+                        <span class="font-mono bg-white px-1 rounded">Esc</span> to cancel
+                      </div>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900 dark:text-white">{{ item.productClassification.productCode }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  ID: {{ item.productClassification.id }}
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                  bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                  {{ item.quantity }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span *ngIf="item.isPrio" 
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                  Priority
-                </span>
-                <span *ngIf="!item.isPrio" 
-                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                  Regular
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ item.customer.customerType }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                {{ getFormattedDateTime(item.createdAt) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Empty State -->
-      <div *ngIf="bookingDetails.items.length === 0" class="text-center py-12">
-        <svg class="w-12 h-12 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-        </svg>
-        <p class="mt-4 text-gray-500 dark:text-gray-400">No items found for this booking</p>
+                </td>
+
+                <!-- Bulk Actions Column -->
+                <td class="px-2 py-3 text-center bg-indigo-50 border-r border-gray-300">
+                  <div class="flex flex-col gap-1">
+                    <button (click)="bulkAllocate(customer.name, 100)" 
+                      class="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors">
+                      100%
+                    </button>
+                    <button (click)="bulkAllocate(customer.name, 75)" 
+                      class="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors">
+                      75%
+                    </button>
+                    <button (click)="bulkAllocate(customer.name, 50)" 
+                      class="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-colors">
+                      50%
+                    </button>
+                    <button (click)="bulkClear(customer.name)" 
+                      class="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors">
+                      Clear
+                    </button>
+                  </div>
+                </td>
+                
+                <!-- Customer totals -->
+                <td class="px-3 py-3 text-center bg-blue-50 border-r border-gray-300">
+                  <div class="flex flex-col items-center gap-1">
+                    <!-- Total booked -->
+                    <div class="text-sm font-semibold text-blue-600">
+                      {{ getTotalForCustomer(customer.name) }}
+                    </div>
+                    <!-- Progress bar for customer -->
+                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                      <div class="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                           [style.width.%]="getTotalForCustomer(customer.name) > 0 ? (getTotalAllocatedForCustomer(customer.name) / getTotalForCustomer(customer.name)) * 100 : 0">
+                      </div>
+                    </div>
+                    <!-- Total allocated -->
+                    <div class="text-sm font-medium text-green-600">
+                      {{ getTotalAllocatedForCustomer(customer.name) }}
+                    </div>
+                    <!-- Total remaining -->
+                    <div class="text-sm font-medium" 
+                         [class.text-red-600]="getTotalRemainingForCustomer(customer.name) > 0"
+                         [class.text-gray-400]="getTotalRemainingForCustomer(customer.name) === 0">
+                      {{ getTotalRemainingForCustomer(customer.name) }}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Empty state -->
+              <tr *ngIf="filteredCustomers.length === 0">
+                <td colspan="100" class="px-6 py-12 text-center">
+                  <div class="flex flex-col items-center justify-center text-gray-500">
+                    <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    <p class="text-lg font-medium">No customers found</p>
+                    <p class="text-sm mt-1">Try adjusting your search or filters</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            
+            <!-- Footer with category totals -->
+            <tfoot class="bg-gray-100 sticky bottom-0">
+              <tr class="border-t-2 border-gray-300">
+                <td class="sticky left-0 z-20 bg-gray-100 px-6 py-4 text-sm font-bold text-gray-900 border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  Category Totals
+                </td>
+                <td class="sticky left-[200px] z-20 bg-gray-100 px-6 py-4 border-r border-gray-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"></td>
+                <td class="px-3 py-4 text-center bg-yellow-100 border-r border-gray-300"></td>
+                <td class="px-3 py-4 text-center bg-indigo-100 border-r border-gray-300"></td>
+                <td *ngFor="let cat of getVisibleCategories()" class="px-3 py-4 text-center border-r border-gray-300">
+                  <div class="flex flex-col items-center gap-1">
+                    <!-- Category total booked -->
+                    <div class="text-sm font-bold text-blue-700">
+                      {{ getTotalForCategory(cat.name) }}
+                    </div>
+                    <!-- Progress bar for category -->
+                    <div class="w-20 bg-gray-300 rounded-full h-2">
+                      <div class="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                           [style.width.%]="getTotalForCategory(cat.name) > 0 ? (getTotalAllocatedForCategory(cat.name) / getTotalForCategory(cat.name)) * 100 : 0">
+                      </div>
+                    </div>
+                    <!-- Category total allocated -->
+                    <div class="text-sm font-medium text-green-700">
+                      {{ getTotalAllocatedForCategory(cat.name) }}
+                    </div>
+                    <!-- Category total remaining -->
+                    <div class="text-sm font-medium text-red-700">
+                      {{ getTotalRemainingForCategory(cat.name) }}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-3 py-4 text-center bg-blue-100 border-r border-gray-300">
+                  <div class="flex flex-col items-center gap-1">
+                    <!-- Grand total booked -->
+                    <div class="text-lg font-bold text-blue-700">
+                      {{ getGrandTotal() }}
+                    </div>
+                    <!-- Progress bar for grand total -->
+                    <div class="w-24 bg-gray-300 rounded-full h-3">
+                      <div class="bg-green-600 h-3 rounded-full transition-all duration-300" 
+                           [style.width.%]="getGrandTotal() > 0 ? (getTotalAllocated() / getGrandTotal()) * 100 : 0">
+                      </div>
+                    </div>
+                    <!-- Grand total allocated -->
+                    <div class="text-sm font-bold text-green-700">
+                      {{ getTotalAllocated() }}
+                    </div>
+                    <!-- Grand total remaining -->
+                    <div class="text-sm font-bold text-red-700">
+                      {{ getTotalRemaining() }}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
     </div>
   </div>

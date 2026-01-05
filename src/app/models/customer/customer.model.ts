@@ -3,3 +3,8 @@ export interface CustomerDto {
   customerName: string;
   customerType: string;
 }
+
+export interface CreateCustomerDto {
+  customerName: string;
+  customerType?: string;
+}
