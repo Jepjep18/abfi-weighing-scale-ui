@@ -41,3 +41,7 @@ export interface ProductionRequest {
   searchTerm?: string;
 }
 
+export interface CreateWeighingProductionGroupDto {
+  productionId: number;
+}
+

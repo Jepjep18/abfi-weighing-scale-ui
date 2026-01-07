@@ -1,0 +1,64 @@
+<h2 mat-dialog-title>Create Weighing Production Group</h2>
+
+<form [formGroup]="weighingGroupForm" (ngSubmit)="onSubmit()">
+
+  <mat-dialog-content class="space-y-4">
+
+    <!-- Production ID -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Production ID</mat-label>
+      <mat-select formControlName="productionId" [disabled]="isSubmitting">
+        <mat-option *ngFor="let prod of productions" [value]="prod.id">
+          {{ prod.id }} – {{ prod.productionName }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Production Name -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Production Name</mat-label>
+      <input matInput [value]="selectedProduction?.productionName || ''" readonly />
+    </mat-form-field>
+
+    <!-- Total Heads -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Total Heads</mat-label>
+      <input matInput [value]="selectedProduction?.totalHeads || ''" readonly />
+    </mat-form-field>
+
+    <!-- Start Date -->
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Start Date Time</mat-label>
+      <input
+        matInput
+        [value]="selectedProduction?.startDateTime | date:'medium'"
+        readonly
+      />
+    </mat-form-field>
+
+    <!-- Error Message -->
+    <div *ngIf="hasError" class="text-sm text-red-600">
+      {{ errorMessage }}
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button
+      mat-button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="isSubmitting">
+      Cancel
+    </button>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="submit"
+      [disabled]="weighingGroupForm.invalid || isSubmitting">
+      {{ isSubmitting ? 'Creating…' : 'Create' }}
+    </button>
+  </mat-dialog-actions>
+
+</form>

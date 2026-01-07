@@ -1,353 +1,104 @@
 <div class="absolute inset-0 flex flex-col min-w-0 overflow-hidden">
-    
+
     <!-- Header -->
-    <div class="flex flex-col sm:flex-row flex-none sm:items-center sm:justify-between px-6 sm:px-8 pt-6 sm:pt-8 pb-4 bg-white border-b border-gray-200">
-    <div class="flex-1 min-w-0">
-        <!-- Title -->
-        <div class="mt-1">
-            <h2 class="text-2xl md:text-3xl font-bold tracking-tight leading-7 sm:leading-9 truncate text-gray-900">
-                WEIGHING SCALE SYSTEM
-            </h2>
-            <p class="text-sm text-gray-500 mt-1">Dual Port Weight Capture Interface</p>
-        </div>
-    </div>
-    
-    <!-- Actions -->
-    <div class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4 space-x-2">
-        <!-- Production ID Selection -->
-<div class="flex items-center gap-2">
-    <span class="text-sm font-medium text-gray-700">Production ID:</span>
-    
-    <!-- Loading state -->
-    <div *ngIf="isLoadingProductions" class="text-sm text-gray-500">
-        Loading productions...
-    </div>
-    
-    <!-- Error state -->
-    <div *ngIf="productionError" class="text-sm text-red-500">
-        {{ productionError }}
-    </div>
-    
-    <!-- Dropdown -->
-    <select 
-        *ngIf="!isLoadingProductions"
-        [(ngModel)]="selectedProductionId"
-        (change)="onProductionIdChange()"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        [disabled]="productionError && productionOptions.length === 0">
-        <option value="">Select Production</option>
-        <option *ngFor="let production of productionOptions" [value]="production.id">
-            {{ production.displayText }}
-        </option>
-    </select>
-</div>
-        
-        <!-- Control Buttons -->
-        <div class="flex gap-2">
-            <button 
-                (click)="startWeighing()"
-                [disabled]="isWeighingActive"
-                class="px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                [class.bg-green-600]="!isWeighingActive"
-                [class.hover:bg-green-700]="!isWeighingActive"
-                [class.text-white]="!isWeighingActive"
-                [class.bg-green-100]="isWeighingActive"
-                [class.text-green-700]="isWeighingActive">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                START
-            </button>
-            
-            <button 
-                (click)="stopWeighing()"
-                [disabled]="!isWeighingActive"
-                class="px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                [class.bg-red-600]="isWeighingActive"
-                [class.hover:bg-red-700]="isWeighingActive"
-                [class.text-white]="isWeighingActive"
-                [class.bg-red-100]="!isWeighingActive"
-                [class.text-red-700]="!isWeighingActive">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
-                </svg>
-                STOP
-            </button>
-        </div>
-    </div>
-</div>
-
-    <!-- Statistics Cards -->
-    <div class="sticky top-0 z-30 bg-gray-50 px-6 pt-4 pb-4 flex-shrink-0 border-b border-gray-200">
-        <div class="grid grid-cols-4 gap-4">
-            <!-- Overall Total -->
-            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-sm text-gray-500 mb-1">Total Weight</div>
-                        <div class="text-3xl font-bold text-blue-600">{{ calculateTotalWeight().toFixed(1) }}</div>
-                        <div class="text-xs text-gray-500 mt-1">KG - Overall Production</div>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Port 1 Total -->
-            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-sm text-gray-500 mb-1">Port 1 Total</div>
-                        <div class="text-3xl font-bold text-green-600">{{ port1Total.toFixed(1) }}</div>
-                        <div class="text-xs text-gray-500 mt-1">KG - {{ getPort1Logs().length }} records</div>
-                    </div>
-                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Port 2 Total -->
-            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-sm text-gray-500 mb-1">Port 2 Total</div>
-                        <div class="text-3xl font-bold text-purple-600">{{ port2Total.toFixed(1) }}</div>
-                        <div class="text-xs text-gray-500 mt-1">KG - {{ getPort2Logs().length }} records</div>
-                    </div>
-                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Session Stats -->
-            <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-sm text-gray-500 mb-1">Session Stats</div>
-                        <div class="text-3xl font-bold text-orange-600">{{ sessionLogsCount }}</div>
-                        <div class="text-xs text-gray-500 mt-1">logs - {{ sessionDuration }}</div>
-                    </div>
-                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                </div>
+    <div
+        class="flex flex-col sm:flex-row flex-none sm:items-center sm:justify-between px-6 sm:px-8 pt-6 sm:pt-8 pb-4 bg-white border-b border-gray-200">
+        <div class="flex-1 min-w-0">
+            <!-- Title -->
+            <div class="mt-1">
+                <h2 class="text-2xl md:text-3xl font-bold tracking-tight leading-7 sm:leading-9 truncate text-gray-900">
+                    WEIGHING SCALE SYSTEM
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">Dual Port Weight Capture Interface</p>
             </div>
         </div>
 
-        <!-- Status Bar -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4 mt-4 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div [class]="'rounded-full w-3 h-3 transition-all ' + (isWeighingActive ? 'animate-pulse bg-green-500' : 'bg-gray-400')"></div>
-                    <span class="text-sm font-medium text-gray-700">System Status:</span>
-                    <span [class]="'text-sm font-semibold ' + (isWeighingActive ? 'text-green-600' : 'text-gray-600')">
-                        {{ isWeighingActive ? 'ACTIVE - Auto Logging' : 'STANDBY - Manual Mode' }}
-                    </span>
-                    <span *ngIf="selectedProductionId" class="ml-4 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+        <!-- Actions -->
+        <div class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4 space-x-2">
+
+            <!-- Production ID Display -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-700">Production ID:</span>
+
+                <!-- Loading state -->
+                <div *ngIf="isLoadingProductions" class="text-sm text-gray-500">
+                    Loading production...
+                </div>
+
+                <!-- Error state -->
+                <div *ngIf="productionError" class="text-sm text-red-500">
+                    {{ productionError }}
+                </div>
+
+                <!-- Dropdown / Selected production -->
+                <select *ngIf="!isLoadingProductions && selectedProductionId" [(ngModel)]="selectedProductionId"
+                    (change)="onProductionIdChange()"
+                    class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled>
+                    <!-- Only show the selected production -->
+                    <option [value]="selectedProductionId">
                         {{ selectedProductionId }}
-                    </span>
-                </div>
-                <div class="flex items-center gap-6 text-sm">
-                    <div class="text-gray-600">
-                        Total Logs: <span class="font-semibold text-blue-600">{{ logs.length }}</span>
-                    </div>
-                    <div class="text-gray-600">
-                        Session Weight: <span class="font-semibold text-green-600">{{ sessionTotalWeight.toFixed(1) }} KG</span>
-                    </div>
-                </div>
+                    </option>
+                </select>
             </div>
+
+            <!-- Control Buttons -->
+            <div class="flex gap-2">
+                <button (click)="startWeighing()" [disabled]="isWeighingActive"
+                    class="px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    [class.bg-green-600]="!isWeighingActive" [class.hover:bg-green-700]="!isWeighingActive"
+                    [class.text-white]="!isWeighingActive" [class.bg-green-100]="isWeighingActive"
+                    [class.text-green-700]="isWeighingActive">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    START
+                </button>
+
+                <button (click)="stopWeighing()" [disabled]="!isWeighingActive"
+                    class="px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    [class.bg-red-600]="isWeighingActive" [class.hover:bg-red-700]="isWeighingActive"
+                    [class.text-white]="isWeighingActive" [class.bg-red-100]="!isWeighingActive"
+                    [class.text-red-700]="!isWeighingActive">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                    </svg>
+                    STOP
+                </button>
+            </div>
+
         </div>
+
     </div>
+
+    <!-- Product Weight Summary -->
+    <div class="sticky top-0 z-30 bg-gray-50 px-6 pt-4 pb-4 flex-shrink-0 border-b border-gray-200">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Product Summary (by Weight)</h3>
+        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-10 gap-3">
+    <div *ngFor="let product of productClassifications"
+         class="bg-white border border-gray-200 rounded-xl p-3 text-center hover:shadow-lg hover:scale-105 transition-transform duration-200 cursor-pointer">
+        <div class="text-xs font-medium text-gray-700 truncate" [title]="product.productCode">
+            {{ product.productCode }}
+        </div>
+        <div class="text-sm font-bold text-gray-900 mt-1">{{ getTotalKG(product.productCode).toFixed(1) }}</div>
+        <div class="text-xs text-gray-500">KG</div>
+    </div>
+</div>
+
+    </div>
+
 
     <!-- Main Content - Weighing Ports & Logs -->
     <div class="flex-1 overflow-y-auto px-6 pb-4">
-        <div class="flex flex-col gap-4">
+        <div class="flex flex-col gap-4 mt-4">
+
             
-            <!-- Weighing Ports -->
-            <div class="flex flex-col gap-4 mt-4">
-                
-                <!-- Port 1 -->
-                <div [class]="'border-2 rounded-lg bg-white transition-all ' + getPortBorderClass(port1Data)">
-                    <!-- Port Header -->
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-6 h-6" [class]="getPortTextClass(port1Data)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
-                            </svg>
-                            <h2 class="text-xl font-bold text-gray-900">PORT 1</h2>
-                            <span class="text-xs font-semibold px-2 py-1 bg-green-100 text-green-800 rounded-full">
-                                {{ port1Total.toFixed(1) }} KG
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5" [class]="getConnectionStatusClass(port1Data)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
-                            </svg>
-                            <span [class]="'text-xs font-medium ' + getConnectionTextClass(port1Data)">
-                                {{ getConnectionStatusText(port1Data) }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Port Content -->
-                    <div class="p-6">
-                        <!-- Digital Display - Full Width -->
-                        <div class="bg-gray-900 text-green-400 font-mono text-6xl p-8 rounded-lg text-center shadow-inner mb-4">
-                            <div class="flex items-center justify-center gap-4">
-                                <span>{{ port1Data.qty.toFixed(1) }}</span>
-                                <span class="text-3xl">{{ port1Data.uom }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Details Grid -->
-                        <div class="grid grid-cols-4 gap-3 mb-4">
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Product Code</div>
-                                <div class="font-semibold text-gray-900 text-sm">{{ port1Data.prodCode || 'N/A' }}</div>
-                            </div>
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Heads</div>
-                                <div class="font-semibold text-gray-900 text-sm">{{ port1Data.heads || 'N/A' }}</div>
-                            </div>
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Class</div>
-                                <div class="font-semibold text-gray-900 text-sm">{{ port1Data.class }}</div>
-                            </div>
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Status</div>
-                                <div [class]="'font-semibold text-sm flex items-center gap-1 ' + getStatusClass(port1Data.status)">
-                                    <svg *ngIf="port1Data.status === 'Captured'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    <svg *ngIf="port1Data.status === 'Error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ port1Data.status }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Serial Data and Mode -->
-                        <div class="grid grid-cols-4 gap-3">
-                            <!-- Serial Data - 3 columns -->
-                            <div class="col-span-3 bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Serial Data</div>
-                                <div class="font-mono text-xs text-gray-700 overflow-x-auto">{{ port1Data.serialData }}</div>
-                            </div>
-
-                            <!-- Mode Indicator - 1 column -->
-                            <div [class]="'border-2 rounded-lg p-3 text-center transition-all ' + (isWeighingActive ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-300')">
-                                <div [class]="'flex flex-col items-center justify-center gap-2 h-full ' + (isWeighingActive ? 'text-blue-700' : 'text-gray-600')">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <div class="text-xs font-semibold">
-                                        {{ isWeighingActive ? 'AUTO' : 'MANUAL' }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Port 2 -->
-                <div [class]="'border-2 rounded-lg bg-white transition-all ' + getPortBorderClass(port2Data)">
-                    <!-- Port Header -->
-                    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-6 h-6" [class]="getPortTextClass(port2Data)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
-                            </svg>
-                            <h2 class="text-xl font-bold text-gray-900">PORT 2</h2>
-                            <span class="text-xs font-semibold px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
-                                {{ port2Total.toFixed(1) }} KG
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5" [class]="getConnectionStatusClass(port2Data)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
-                            </svg>
-                            <span [class]="'text-xs font-medium ' + getConnectionTextClass(port2Data)">
-                                {{ getConnectionStatusText(port2Data) }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Port Content -->
-                    <div class="p-6">
-                        <!-- Digital Display - Full Width -->
-                        <div class="bg-gray-900 text-green-400 font-mono text-6xl p-8 rounded-lg text-center shadow-inner mb-4">
-                            <div class="flex items-center justify-center gap-4">
-                                <span>{{ port2Data.qty.toFixed(1) }}</span>
-                                <span class="text-3xl">{{ port2Data.uom }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Details Grid -->
-                        <div class="grid grid-cols-4 gap-3 mb-4">
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Product Code</div>
-                                <div class="font-semibold text-gray-900 text-sm">{{ port2Data.prodCode || 'N/A' }}</div>
-                            </div>
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Heads</div>
-                                <div class="font-semibold text-gray-900 text-sm">{{ port2Data.heads || 'N/A' }}</div>
-                            </div>
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Class</div>
-                                <div class="font-semibold text-gray-900 text-sm">{{ port2Data.class }}</div>
-                            </div>
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Status</div>
-                                <div [class]="'font-semibold text-sm flex items-center gap-1 ' + getStatusClass(port2Data.status)">
-                                    <svg *ngIf="port2Data.status === 'Captured'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
-                                    <svg *ngIf="port2Data.status === 'Error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-weight="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ port2Data.status }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Serial Data and Mode -->
-                        <div class="grid grid-cols-4 gap-3">
-                            <!-- Serial Data - 3 columns -->
-                            <div class="col-span-3 bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                                <div class="text-gray-500 text-xs mb-1">Serial Data</div>
-                                <div class="font-mono text-xs text-gray-700 overflow-x-auto">{{ port2Data.serialData }}</div>
-                            </div>
-
-                            <!-- Mode Indicator - 1 column -->
-                            <div [class]="'border-2 rounded-lg p-3 text-center transition-all ' + (isWeighingActive ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-300')">
-                                <div [class]="'flex flex-col items-center justify-center gap-2 h-full ' + (isWeighingActive ? 'text-blue-700' : 'text-gray-600')">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    <div class="text-xs font-semibold">
-                                        {{ isWeighingActive ? 'AUTO' : 'MANUAL' }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
 
             <!-- Recent Logs Table -->
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm min-h-[400px]">
@@ -355,7 +106,8 @@
                     <h2 class="text-lg font-semibold text-gray-900">Recent Weighing Logs</h2>
                     <div class="flex items-center gap-4 text-sm text-gray-600">
                         <div>
-                            Session Total: <span class="font-semibold text-green-600">{{ sessionTotalWeight.toFixed(1) }} KG</span>
+                            Session Total: <span class="font-semibold text-green-600">{{ sessionTotalWeight.toFixed(1)
+                                }} KG</span>
                         </div>
                         <div class="text-gray-400">|</div>
                         <div>
@@ -363,56 +115,80 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-gray-50">
                             <tr class="border-b border-gray-200">
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial Data</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">UoM</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Heads</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prod Code</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prod ID</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Time</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Port</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ID</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Serial Data</th>
+                                <th
+                                    class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Qty</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    UoM</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Heads</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Prod Code</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Prod ID</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date Time</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Port</th>
+                                <th
+                                    class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Remarks</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr *ngFor="let log of logs; let i = index" 
-                                class="hover:bg-gray-50 transition-colors">
+                            <tr *ngFor="let log of logs; let i = index" class="hover:bg-gray-50 transition-colors">
                                 <td class="px-4 py-3 text-gray-900">{{ log.id }}</td>
                                 <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ log.serialData }}</td>
                                 <td class="px-4 py-3 text-right font-semibold text-gray-900">{{ log.qty }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ log.uom }}</td>
                                 <td class="px-4 py-3 text-gray-600">{{ log.heads }}</td>
                                 <td class="px-4 py-3">
-                                    <span [class]="'px-2 py-1 rounded-full text-xs font-semibold ' + getProdCodeClass(log.prodCode)">
+                                    <span
+                                        [class]="'px-2 py-1 rounded-full text-xs font-semibold ' + getProdCodeClass(log.prodCode)">
                                         {{ log.prodCode }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                                    <span
+                                        class="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
                                         {{ log.productionId || 'N/A' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-xs text-gray-600">{{ log.createdDateTime }}</td>
                                 <td class="px-4 py-3">
-                                    <span [class]="'px-2 py-1 rounded-full text-xs font-semibold ' + (log.portNumber === 1 ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800')">
-                                        Port {{ log.portNumber }}
+                                    <span
+                                        [class]="'px-2 py-1 rounded-full text-xs font-semibold ' + (log.portNumber === 'COM11' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800')">
+                                        Port {{ log.portNumber === 'COM11' ? '1' : '2' }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-xs text-gray-500">{{ log.remarks || '-' }}</td>
                             </tr>
-                            
+
                             <!-- Empty state -->
                             <tr *ngIf="logs.length === 0">
                                 <td colspan="10" class="px-4 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center text-gray-500">
-                                        <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                         <p class="text-lg font-medium">No weighing logs yet</p>
                                         <p class="text-sm mt-1">Start weighing to see logs appear here</p>
