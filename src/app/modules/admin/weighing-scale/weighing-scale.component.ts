@@ -40,6 +40,16 @@ interface ProductionOption {
     originalId: number;
 }
 
+interface RangedProduct {
+    size: string;
+    variants: { [key: string]: string };
+}
+
+interface CatchWeightProduct {
+    product: string;
+    total: number;
+}
+
 @Component({
     selector: 'app-weighing-scale',
     templateUrl: './weighing-scale.component.html',
@@ -89,6 +99,11 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
     private autoLogInterval: any;
     private sessionTimerInterval: any;
 
+    rangedProducts: RangedProduct[] = [];
+    catchWeightProducts: CatchWeightProduct[] = [];
+    activeProduct: any = null;
+    private activeProductTimeout: any = null;
+
     constructor(
         private productionService: ProductionService,
         private route: ActivatedRoute,
@@ -111,14 +126,95 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
         this.productClassificationService.getAll().subscribe({
             next: (data) => {
                 this.productClassifications = data;
-                console.log('Product Classifications Loaded:', this.productClassifications);
+                this.buildProductTables();
                 this.isLoadingProductClassifications = false;
             },
-            error: (err) => {
-                console.error('Failed to load product classifications', err);
+            error: () => {
                 this.isLoadingProductClassifications = false;
             },
         });
+    }
+
+    private buildProductTables(): void {
+        const RANGE_VARIANTS = ['CHOICE', 'FARMERS', 'PLAIN POLY', 'LB'];
+        const rangeMap = new Map<string, RangedProduct>();
+        const catchMap = new Map<string, string[]>();
+
+        this.productClassifications.forEach((p) => {
+            let code = p.productCode.trim();
+            let variant: string | null = null;
+
+            // Detect variant
+            for (const v of RANGE_VARIANTS) {
+                const regex = new RegExp(`\\s*${v}$`, 'i');
+                if (regex.test(code)) {
+                    variant = v;
+                    code = code.replace(regex, '').trim(); // size only
+                    break;
+                }
+            }
+
+            // Catch cases like "1-1.1LB" without space
+            if (!variant && /LB$/i.test(code)) {
+                variant = 'LB';
+                code = code.replace(/LB$/i, '').trim();
+            }
+
+            // Determine if it's a ranged product (has digits)
+            if (/\d/.test(code)) {
+                if (!rangeMap.has(code)) {
+                    rangeMap.set(code, { size: code, variants: {} });
+                }
+                if (variant) {
+                    rangeMap.get(code)!.variants[variant] = p.productCode;
+                }
+            }
+            // Catch weight products
+            else {
+                if (!catchMap.has(code)) {
+                    catchMap.set(code, []);
+                }
+                catchMap.get(code)!.push(p.productCode);
+            }
+        });
+
+        // Sort weight-range products numerically
+        this.rangedProducts = Array.from(rangeMap.values()).sort((a, b) =>
+            a.size.localeCompare(b.size, undefined, { numeric: true })
+        );
+
+        // Build catch weight products
+        this.catchWeightProducts = Array.from(catchMap.entries()).map(
+            ([product, codes]) => ({
+                product,
+                codes, // add this!
+                total: codes.reduce(
+                    (sum, code) => sum + this.getTotalKG(code),
+                    0
+                ),
+            })
+        );
+    }
+
+    displayKG(productCode?: string): string {
+        if (!productCode) return '-';
+        const total = this.getTotalKG(productCode);
+        return total > 0 ? total.toFixed(1) : '-';
+    }
+
+    getVariantTotal(variants: Record<string, string>): number {
+        return Object.values(variants || {}).reduce(
+            (sum, code) => sum + this.getTotalKG(code),
+            0
+        );
+    }
+
+    getCatchWeightTotal(codes: string[]): number {
+        return codes.reduce((sum, code) => sum + this.getTotalKG(code), 0);
+    }
+
+    displayTotal(value: number): string {
+        return value > 0 ? value.toFixed(1) : '-';
     }
 
     private loadProductionFromRoute(): void {
@@ -174,9 +270,12 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
                 return;
             }
 
-            const randomProduct = this.productClassifications[
-                Math.floor(Math.random() * this.productClassifications.length)
-            ];
+            const randomProduct =
+                this.productClassifications[
+                    Math.floor(
+                        Math.random() * this.productClassifications.length
+                    )
+                ];
             const prodCode = randomProduct.productCode;
 
             // Generate random heads count (between 10-30)
@@ -187,7 +286,9 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             const portName = activePort === 'port1' ? 'COM11' : 'COM12';
 
             const newData: WeighingData = {
-                serialData: `   ${randomWeight} KG G ${heads.toString().padStart(6, '0')} PCS`,
+                serialData: `   ${randomWeight} KG G ${heads
+                    .toString()
+                    .padStart(6, '0')} PCS`,
                 qty: weight,
                 uom: 'KG',
                 prodCode: prodCode,
@@ -226,11 +327,18 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             this.sessionLogsCount++;
             this.sessionTotalWeight += weight;
 
+            this.handleWeightData(newLog);
+
             // Recalculate totals
             this.calculateTotals();
 
             console.log('New log added:', newLog);
-            console.log('Total KG for', prodCode, ':', this.getTotalKG(prodCode));
+            console.log(
+                'Total KG for',
+                prodCode,
+                ':',
+                this.getTotalKG(prodCode)
+            );
 
             // Reset status after showing capture
             setTimeout(() => {
@@ -324,7 +432,7 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
 
     getProdCodeClass(prodCode: string | null): string {
         if (!prodCode) return 'bg-gray-100 text-gray-800';
-        
+
         // Generate consistent colors based on product code
         const colors = [
             'bg-blue-100 text-blue-800',
@@ -336,9 +444,11 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             'bg-indigo-100 text-indigo-800',
             'bg-orange-100 text-orange-800',
         ];
-        
+
         // Simple hash function to get consistent color for each product code
-        const hash = prodCode.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const hash = prodCode
+            .split('')
+            .reduce((acc, char) => acc + char.charCodeAt(0), 0);
         return colors[hash % colors.length];
     }
 
@@ -381,5 +491,42 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             .reduce((sum, log) => sum + (log.qty || 0), 0);
 
         return total;
+    }
+
+    recordWeight(logData: any) {
+        this.activeProduct = {
+            size: logData.prodCode, // or whatever field has the product size
+            product: logData.prodCode,
+            variant: logData.variant || null,
+            weight: logData.qty,
+            heads: logData.heads || null,
+        };
+
+        // Clear after 3 seconds (optional)
+        setTimeout(() => {
+            this.activeProduct = null;
+        }, 3000);
+    }
+
+    private handleWeightData(log: any) {
+        // Clear any existing timeout
+        if (this.activeProductTimeout) {
+            clearTimeout(this.activeProductTimeout);
+        }
+
+        // Set the active product
+        this.activeProduct = {
+            prodCode: log.prodCode,
+            qty: log.qty,
+            uom: log.uom,
+            heads: log.heads,
+            portLabel: log.portNumber === 'COM11' ? 'Port 1' : 'Port 2',
+            portNumber: log.portNumber,
+        };
+
+        // Auto-clear after 5 seconds
+        this.activeProductTimeout = setTimeout(() => {
+            this.activeProduct = null;
+        }, 5000);
     }
 }
