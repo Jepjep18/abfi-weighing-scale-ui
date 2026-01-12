@@ -47,6 +47,7 @@ interface RangedProduct {
 
 interface CatchWeightProduct {
     product: string;
+    codes?: string[];
     total: number;
 }
 
@@ -103,6 +104,9 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
     catchWeightProducts: CatchWeightProduct[] = [];
     activeProduct: any = null;
     private activeProductTimeout: any = null;
+    selectedRangedRow: RangedProduct | null = null;
+    selectedVariant: string | null = null;
+    selectedProductCodeOverride: string | null = null;
 
     constructor(
         private productionService: ProductionService,
@@ -254,6 +258,7 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
         this.clearAutoLogging();
         this.clearSessionTimer();
         this.sessionDuration = '00:00:00';
+        this.selectedProductCodeOverride = null;
     }
 
     startAutoLogging(): void {
@@ -264,19 +269,24 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             const randomWeight = (Math.random() * 15 + 10).toFixed(1);
             const weight = parseFloat(randomWeight);
 
-            // Get a random product code from loaded classifications
-            if (this.productClassifications.length === 0) {
-                console.warn('No product classifications loaded');
-                return;
-            }
+            // Determine product code: override or random
+            let prodCode: string | undefined = undefined;
+            if (this.selectedProductCodeOverride) {
+                prodCode = this.selectedProductCodeOverride;
+            } else {
+                if (this.productClassifications.length === 0) {
+                    console.warn('No product classifications loaded');
+                    return;
+                }
 
-            const randomProduct =
-                this.productClassifications[
-                    Math.floor(
-                        Math.random() * this.productClassifications.length
-                    )
-                ];
-            const prodCode = randomProduct.productCode;
+                const randomProduct =
+                    this.productClassifications[
+                        Math.floor(
+                            Math.random() * this.productClassifications.length
+                        )
+                    ];
+                prodCode = randomProduct.productCode;
+            }
 
             // Generate random heads count (between 10-30)
             const heads = Math.floor(Math.random() * 21) + 10;
@@ -491,6 +501,89 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             .reduce((sum, log) => sum + (log.qty || 0), 0);
 
         return total;
+    }
+
+    // Helpers for selecting ranged product + variant
+    getAvailableVariantKeys(row: RangedProduct): string[] {
+        const order = ['CHOICE', 'FARMERS', 'LB', 'PLAIN POLY'];
+        return Object.keys(row.variants || {}).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    }
+
+    selectRangedRow(row: RangedProduct): void {
+        this.selectedRangedRow = row;
+        const keys = this.getAvailableVariantKeys(row);
+        this.selectedVariant = keys.length > 0 ? keys[0] : null;
+    }
+
+    getSelectedVariantProductCode(): string | null {
+        if (!this.selectedRangedRow || !this.selectedVariant) return null;
+        return this.selectedRangedRow.variants[this.selectedVariant] || null;
+    }
+
+    // Returns true when the activeProduct.prodCode corresponds to any variant
+    // of the given ranged product row, or exactly matches the size string.
+    isRangedRowActive(row: RangedProduct): boolean {
+        if (!this.activeProduct || !this.activeProduct.prodCode) return false;
+        const activeCode = this.activeProduct.prodCode;
+
+        // If the row size (e.g. "1-1.1") equals the active code (rare), return true
+        if (row.size === activeCode) return true;
+
+        // Check if any variant product code matches the active code
+        return Object.values(row.variants || {}).includes(activeCode);
+    }
+
+    // Start weighing with an explicit productCode (optional)
+    startWeighingWithProductCode(productCode?: string | null): void {
+        this.selectedProductCodeOverride = productCode || null;
+        // If a session is already active, don't restart it – just set the override
+        if (this.isWeighingActive) {
+            return;
+        }
+
+        this.startWeighing();
+    }
+
+    // Called when clicking per-row Start
+    startWeighingProduct(row: RangedProduct, variant?: string): void {
+        const chosenVariant = variant || this.selectedVariant || this.getAvailableVariantKeys(row)[0];
+        this.selectedRangedRow = row;
+        this.selectedVariant = chosenVariant || null;
+        const prodCode = row.variants[chosenVariant!];
+
+        // If session is already active, just set the override product code
+        if (this.isWeighingActive) {
+            this.selectedProductCodeOverride = prodCode;
+            return;
+        }
+
+        // Otherwise start a new session with this product
+        this.startWeighingWithProductCode(prodCode);
+    }
+
+    stopWeighingProduct(row: RangedProduct): void {
+        // stop general weighing; keep selection
+        this.stopWeighing();
+    }
+
+    // Start/stop for catch weight products
+    startWeighingCatchWeight(row: any): void {
+        const code = (row.codes && row.codes.length > 0) ? row.codes[0] : null;
+        if (!code) {
+            console.warn('No catch weight codes for', row.product);
+            return;
+        }
+
+        if (this.isWeighingActive) {
+            this.selectedProductCodeOverride = code;
+            return;
+        }
+
+        this.startWeighingWithProductCode(code);
+    }
+
+    stopWeighingCatchWeight(row: any): void {
+        this.stopWeighing();
     }
 
     recordWeight(logData: any) {
