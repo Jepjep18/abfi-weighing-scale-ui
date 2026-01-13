@@ -1,9 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ProductionService } from '../../../services/production-service/production.service';
-import { ProductionRequest } from '../../../models/production/production-request.model';
-import { ProductionListDto } from '../../../models/production/production-list.model';
-import { PagedResponse } from '../../../models/page-response/page-response.model';
 import { ActivatedRoute } from '@angular/router';
 import { ProductClassificationService } from 'app/services/product-classification/product-classification.service';
 import { ProductClassification } from 'app/models/product-classification/product-classification.model';
@@ -31,13 +27,6 @@ interface WeighingLog {
     portNumber: string;
     class: string;
     remarks: string | null;
-}
-
-interface ProductionOption {
-    id: string;
-    name: string;
-    displayText: string;
-    originalId: number;
 }
 
 interface RangedProduct {
@@ -85,31 +74,23 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
     selectedProductionId: string = '';
     sessionStartTime: Date | null = null;
     sessionDuration: string = '00:00:00';
-    sessionLogsCount: number = 0;
     sessionTotalWeight: number = 0;
-    port1Total: number = 0;
-    port2Total: number = 0;
-    isLoadingProductClassifications = false;
+
     productClassifications: ProductClassification[] = [];
-
-    // New properties for production list
-    productionOptions: ProductionOption[] = [];
-    isLoadingProductions = false;
-    productionError: string | null = null;
-
-    private autoLogInterval: any;
-    private sessionTimerInterval: any;
-
     rangedProducts: RangedProduct[] = [];
     catchWeightProducts: CatchWeightProduct[] = [];
+    
     activeProduct: any = null;
+    activeRowSize: string | null = null;
+    activeVariant: string | null = null;
+    selectedRowVariant: { [rowSize: string]: string | null } = {};
+    activeWeighingRow: string | null = null;
+    
     private activeProductTimeout: any = null;
-    selectedRangedRow: RangedProduct | null = null;
-    selectedVariant: string | null = null;
-    selectedProductCodeOverride: string | null = null;
+    private sessionTimerInterval: any;
+    private productWeighingInterval: any;
 
     constructor(
-        private productionService: ProductionService,
         private route: ActivatedRoute,
         private productClassificationService: ProductClassificationService
     ) {}
@@ -117,7 +98,6 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
     ngOnInit(): void {
         this.loadProductClassifications();
         this.loadProductionFromRoute();
-        this.calculateTotals();
     }
 
     ngOnDestroy(): void {
@@ -125,16 +105,13 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
     }
 
     private loadProductClassifications(): void {
-        this.isLoadingProductClassifications = true;
-
         this.productClassificationService.getAll().subscribe({
             next: (data) => {
                 this.productClassifications = data;
                 this.buildProductTables();
-                this.isLoadingProductClassifications = false;
             },
             error: () => {
-                this.isLoadingProductClassifications = false;
+                console.error('Failed to load product classifications');
             },
         });
     }
@@ -153,7 +130,7 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
                 const regex = new RegExp(`\\s*${v}$`, 'i');
                 if (regex.test(code)) {
                     variant = v;
-                    code = code.replace(regex, '').trim(); // size only
+                    code = code.replace(regex, '').trim();
                     break;
                 }
             }
@@ -191,7 +168,7 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
         this.catchWeightProducts = Array.from(catchMap.entries()).map(
             ([product, codes]) => ({
                 product,
-                codes, // add this!
+                codes,
                 total: codes.reduce(
                     (sum, code) => sum + this.getTotalKG(code),
                     0
@@ -224,18 +201,16 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
     private loadProductionFromRoute(): void {
         this.route.paramMap.subscribe((params) => {
             const id = params.get('id');
-
             if (id) {
                 this.selectedProductionId = `PROD-${id.padStart(3, '0')}`;
-                this.calculateTotals();
             } else {
-                // If no ID in route, set a default one
                 this.selectedProductionId = 'PROD-001';
             }
         });
     }
 
     onProductionIdChange(): void {
+        // Recalculate totals when production changes
         this.calculateTotals();
     }
 
@@ -247,46 +222,183 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
 
         this.isWeighingActive = true;
         this.sessionStartTime = new Date();
-        this.sessionLogsCount = 0;
         this.sessionTotalWeight = 0;
         this.startSessionTimer();
-        this.startAutoLogging();
     }
 
     stopWeighing(): void {
+        if (this.activeWeighingRow) {
+            this.stopActiveProductWeighing();
+        }
+
         this.isWeighingActive = false;
-        this.clearAutoLogging();
         this.clearSessionTimer();
+        this.clearProductWeighing();
         this.sessionDuration = '00:00:00';
-        this.selectedProductCodeOverride = null;
+        this.activeRowSize = null;
+        this.activeVariant = null;
+        this.activeWeighingRow = null;
+        this.selectedRowVariant = {};
+        this.activeProduct = null;
     }
 
-    startAutoLogging(): void {
-        this.autoLogInterval = setInterval(() => {
-            if (!this.isWeighingActive) return;
+    selectVariantForRow(row: RangedProduct, variant: string): void {
+        if (!this.isWeighingActive) {
+            alert('Please start the weighing system first!');
+            return;
+        }
+
+        if (this.selectedRowVariant[row.size] === variant) {
+            this.selectedRowVariant[row.size] = null;
+            this.activeRowSize = null;
+            this.activeVariant = null;
+        } else {
+            this.selectedRowVariant[row.size] = variant;
+            this.activeRowSize = row.size;
+            this.activeVariant = variant;
+        }
+    }
+
+    getVariantCellClass(row: RangedProduct, variant: string): string {
+        const isSelected = this.selectedRowVariant[row.size] === variant;
+        const isWeighing =
+            this.activeWeighingRow === row.size &&
+            this.activeVariant === variant;
+
+        if (isWeighing) {
+            return 'bg-green-100 text-green-800 border border-green-300';
+        } else if (isSelected) {
+            return 'bg-blue-100 text-blue-800 border border-blue-300';
+        }
+
+        return 'bg-gray-100 text-gray-700 hover:bg-gray-200';
+    }
+
+    isRowWeighing(row: RangedProduct): boolean {
+        return this.activeWeighingRow === row.size;
+    }
+
+    isCatchWeightWeighing(row: CatchWeightProduct): boolean {
+        return this.activeWeighingRow === row.product;
+    }
+
+    isRangedRowActive(row: RangedProduct): boolean {
+        if (this.activeWeighingRow === row.size) {
+            return true;
+        }
+
+        if (!this.activeProduct || !this.activeProduct.prodCode) return false;
+        const activeCode = this.activeProduct.prodCode;
+
+        if (row.size === activeCode) return true;
+        return Object.values(row.variants || {}).includes(activeCode);
+    }
+
+    startWeighingProduct(row: RangedProduct): void {
+        if (!this.isWeighingActive) {
+            alert('Please start the weighing system first!');
+            return;
+        }
+
+        if (!this.selectedRowVariant[row.size]) {
+            alert('Please select a variant (Choice, Farmers, LB, or Plain Poly) first!');
+            return;
+        }
+
+        const variant = this.selectedRowVariant[row.size]!;
+        const productCode = row.variants[variant];
+
+        if (!productCode) {
+            alert('Product code not found!');
+            return;
+        }
+
+        // Stop any currently active weighing
+        if (this.activeWeighingRow) {
+            this.stopActiveProductWeighing();
+        }
+
+        this.activeWeighingRow = row.size;
+        this.activeVariant = variant;
+
+        this.startProductWeighing(productCode, row.size, variant);
+
+        this.activeProduct = {
+            prodCode: productCode,
+            size: row.size,
+            variant: variant,
+            qty: 0,
+            uom: 'KG',
+            heads: null,
+            portLabel: 'Auto',
+        };
+    }
+
+    stopWeighingProduct(row: RangedProduct): void {
+        if (this.activeWeighingRow === row.size) {
+            this.stopActiveProductWeighing();
+            this.selectedRowVariant[row.size] = null;
+
+            if (this.activeRowSize === row.size) {
+                this.activeRowSize = null;
+                this.activeVariant = null;
+            }
+        }
+    }
+
+    startWeighingCatchWeight(row: CatchWeightProduct): void {
+        if (!this.isWeighingActive) {
+            alert('Please start the weighing system first!');
+            return;
+        }
+
+        const code = row.codes && row.codes.length > 0 ? row.codes[0] : null;
+        if (!code) {
+            alert('No product code found for this catch weight product!');
+            return;
+        }
+
+        // Stop any currently active weighing
+        if (this.activeWeighingRow) {
+            this.stopActiveProductWeighing();
+        }
+
+        this.activeWeighingRow = row.product;
+
+        this.startProductWeighing(code, row.product, 'CATCH WEIGHT');
+
+        this.activeProduct = {
+            prodCode: code,
+            product: row.product,
+            qty: 0,
+            uom: 'KG',
+            heads: null,
+            portLabel: 'Auto',
+        };
+    }
+
+    stopWeighingCatchWeight(row: CatchWeightProduct): void {
+        if (this.activeWeighingRow === row.product) {
+            this.stopActiveProductWeighing();
+        }
+    }
+
+    private startProductWeighing(
+        productCode: string,
+        rowIdentifier: string,
+        productType: string
+    ): void {
+        this.clearProductWeighing();
+
+        this.productWeighingInterval = setInterval(() => {
+            if (!this.isWeighingActive || this.activeWeighingRow !== rowIdentifier) {
+                this.clearProductWeighing();
+                return;
+            }
 
             // Generate random weight between 10-25 KG
             const randomWeight = (Math.random() * 15 + 10).toFixed(1);
             const weight = parseFloat(randomWeight);
-
-            // Determine product code: override or random
-            let prodCode: string | undefined = undefined;
-            if (this.selectedProductCodeOverride) {
-                prodCode = this.selectedProductCodeOverride;
-            } else {
-                if (this.productClassifications.length === 0) {
-                    console.warn('No product classifications loaded');
-                    return;
-                }
-
-                const randomProduct =
-                    this.productClassifications[
-                        Math.floor(
-                            Math.random() * this.productClassifications.length
-                        )
-                    ];
-                prodCode = randomProduct.productCode;
-            }
 
             // Generate random heads count (between 10-30)
             const heads = Math.floor(Math.random() * 21) + 10;
@@ -296,12 +408,10 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             const portName = activePort === 'port1' ? 'COM11' : 'COM12';
 
             const newData: WeighingData = {
-                serialData: `   ${randomWeight} KG G ${heads
-                    .toString()
-                    .padStart(6, '0')} PCS`,
+                serialData: `   ${randomWeight} KG G ${heads.toString().padStart(6, '0')} PCS`,
                 qty: weight,
                 uom: 'KG',
-                prodCode: prodCode,
+                prodCode: productCode,
                 heads: heads,
                 status: 'Captured',
                 class: 'ClassB',
@@ -315,40 +425,26 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
                 this.port2Data = { ...newData };
             }
 
-            // Automatically log to table
+            // Add to logs
             const newLog: WeighingLog = {
                 id: this.logs.length + 1,
                 serialData: newData.serialData,
                 qty: weight,
                 uom: 'KG',
                 heads: heads,
-                prodCode: prodCode,
+                prodCode: productCode,
                 productionId: this.selectedProductionId,
-                createdDateTime: new Date()
-                    .toISOString()
-                    .slice(0, 19)
-                    .replace('T', ' '),
+                createdDateTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
                 portNumber: portName,
                 class: 'ClassB',
                 remarks: newData.remarks,
             };
 
             this.logs = [newLog, ...this.logs];
-            this.sessionLogsCount++;
             this.sessionTotalWeight += weight;
 
             this.handleWeightData(newLog);
-
-            // Recalculate totals
             this.calculateTotals();
-
-            console.log('New log added:', newLog);
-            console.log(
-                'Total KG for',
-                prodCode,
-                ':',
-                this.getTotalKG(prodCode)
-            );
 
             // Reset status after showing capture
             setTimeout(() => {
@@ -359,62 +455,41 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
                     this.port2Data = resetData;
                 }
             }, 1000);
-        }, 3000); // Generate new data every 3 seconds
+        }, 3000);
     }
 
-    calculateTotals(): void {
-        // Calculate port totals
-        this.port1Total = this.getPort1Logs().reduce(
-            (sum, log) => sum + log.qty,
-            0
-        );
-        this.port2Total = this.getPort2Logs().reduce(
-            (sum, log) => sum + log.qty,
-            0
-        );
+    private stopActiveProductWeighing(): void {
+        this.clearProductWeighing();
+        this.activeWeighingRow = null;
+        this.activeVariant = null;
+        this.activeProduct = null;
 
+        // Reset port status
+        this.port1Data.status = 'Ready';
+        this.port2Data.status = 'Ready';
+    }
+
+    private clearProductWeighing(): void {
+        if (this.productWeighingInterval) {
+            clearInterval(this.productWeighingInterval);
+            this.productWeighingInterval = null;
+        }
+    }
+
+    private calculateTotals(): void {
         // Recalculate session total for current production
         this.sessionTotalWeight = this.logs
             .filter((log) => log.productionId === this.selectedProductionId)
             .reduce((sum, log) => sum + log.qty, 0);
     }
 
-    calculateTotalWeight(): number {
-        return this.port1Total + this.port2Total;
-    }
-
-    getPort1Logs(): WeighingLog[] {
-        return this.logs.filter(
-            (log) =>
-                log.portNumber === 'COM11' &&
-                log.productionId === this.selectedProductionId
-        );
-    }
-
-    getPort2Logs(): WeighingLog[] {
-        return this.logs.filter(
-            (log) =>
-                log.portNumber === 'COM12' &&
-                log.productionId === this.selectedProductionId
-        );
-    }
-
-    clearAutoLogging(): void {
-        if (this.autoLogInterval) {
-            clearInterval(this.autoLogInterval);
-            this.autoLogInterval = null;
-        }
-    }
-
-    startSessionTimer(): void {
+    private startSessionTimer(): void {
         this.sessionTimerInterval = setInterval(() => {
             if (this.sessionStartTime) {
                 const now = new Date();
                 const diff = now.getTime() - this.sessionStartTime.getTime();
                 const hours = Math.floor(diff / (1000 * 60 * 60));
-                const minutes = Math.floor(
-                    (diff % (1000 * 60 * 60)) / (1000 * 60)
-                );
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                 const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
                 this.sessionDuration =
@@ -427,23 +502,16 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
         }, 1000);
     }
 
-    clearSessionTimer(): void {
+    private clearSessionTimer(): void {
         if (this.sessionTimerInterval) {
             clearInterval(this.sessionTimerInterval);
             this.sessionTimerInterval = null;
         }
     }
 
-    getStatusClass(status: string): string {
-        if (status === 'Captured') return 'text-green-600';
-        if (status === 'Error') return 'text-red-600';
-        return 'text-blue-600';
-    }
-
     getProdCodeClass(prodCode: string | null): string {
         if (!prodCode) return 'bg-gray-100 text-gray-800';
 
-        // Generate consistent colors based on product code
         const colors = [
             'bg-blue-100 text-blue-800',
             'bg-green-100 text-green-800',
@@ -455,37 +523,10 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
             'bg-orange-100 text-orange-800',
         ];
 
-        // Simple hash function to get consistent color for each product code
         const hash = prodCode
             .split('')
             .reduce((acc, char) => acc + char.charCodeAt(0), 0);
         return colors[hash % colors.length];
-    }
-
-    isPortActive(data: WeighingData): boolean {
-        return data.status === 'Captured';
-    }
-
-    getPortBorderClass(data: WeighingData): string {
-        return this.isPortActive(data)
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 bg-gray-50';
-    }
-
-    getPortTextClass(data: WeighingData): string {
-        return this.isPortActive(data) ? 'text-blue-600' : 'text-gray-600';
-    }
-
-    getConnectionStatusClass(data: WeighingData): string {
-        return this.isPortActive(data) ? 'text-green-500' : 'text-gray-400';
-    }
-
-    getConnectionStatusText(data: WeighingData): string {
-        return this.isPortActive(data) ? 'Connected' : 'Standby';
-    }
-
-    getConnectionTextClass(data: WeighingData): string {
-        return this.isPortActive(data) ? 'text-green-600' : 'text-gray-500';
     }
 
     // Returns total KG for a given productCode for the current selected production
@@ -503,111 +544,13 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
         return total;
     }
 
-    // Helpers for selecting ranged product + variant
-    getAvailableVariantKeys(row: RangedProduct): string[] {
-        const order = ['CHOICE', 'FARMERS', 'LB', 'PLAIN POLY'];
-        return Object.keys(row.variants || {}).sort((a, b) => order.indexOf(a) - order.indexOf(b));
-    }
-
-    selectRangedRow(row: RangedProduct): void {
-        this.selectedRangedRow = row;
-        const keys = this.getAvailableVariantKeys(row);
-        this.selectedVariant = keys.length > 0 ? keys[0] : null;
-    }
-
-    getSelectedVariantProductCode(): string | null {
-        if (!this.selectedRangedRow || !this.selectedVariant) return null;
-        return this.selectedRangedRow.variants[this.selectedVariant] || null;
-    }
-
-    // Returns true when the activeProduct.prodCode corresponds to any variant
-    // of the given ranged product row, or exactly matches the size string.
-    isRangedRowActive(row: RangedProduct): boolean {
-        if (!this.activeProduct || !this.activeProduct.prodCode) return false;
-        const activeCode = this.activeProduct.prodCode;
-
-        // If the row size (e.g. "1-1.1") equals the active code (rare), return true
-        if (row.size === activeCode) return true;
-
-        // Check if any variant product code matches the active code
-        return Object.values(row.variants || {}).includes(activeCode);
-    }
-
-    // Start weighing with an explicit productCode (optional)
-    startWeighingWithProductCode(productCode?: string | null): void {
-        this.selectedProductCodeOverride = productCode || null;
-        // If a session is already active, don't restart it – just set the override
-        if (this.isWeighingActive) {
-            return;
-        }
-
-        this.startWeighing();
-    }
-
-    // Called when clicking per-row Start
-    startWeighingProduct(row: RangedProduct, variant?: string): void {
-        const chosenVariant = variant || this.selectedVariant || this.getAvailableVariantKeys(row)[0];
-        this.selectedRangedRow = row;
-        this.selectedVariant = chosenVariant || null;
-        const prodCode = row.variants[chosenVariant!];
-
-        // If session is already active, just set the override product code
-        if (this.isWeighingActive) {
-            this.selectedProductCodeOverride = prodCode;
-            return;
-        }
-
-        // Otherwise start a new session with this product
-        this.startWeighingWithProductCode(prodCode);
-    }
-
-    stopWeighingProduct(row: RangedProduct): void {
-        // stop general weighing; keep selection
-        this.stopWeighing();
-    }
-
-    // Start/stop for catch weight products
-    startWeighingCatchWeight(row: any): void {
-        const code = (row.codes && row.codes.length > 0) ? row.codes[0] : null;
-        if (!code) {
-            console.warn('No catch weight codes for', row.product);
-            return;
-        }
-
-        if (this.isWeighingActive) {
-            this.selectedProductCodeOverride = code;
-            return;
-        }
-
-        this.startWeighingWithProductCode(code);
-    }
-
-    stopWeighingCatchWeight(row: any): void {
-        this.stopWeighing();
-    }
-
-    recordWeight(logData: any) {
-        this.activeProduct = {
-            size: logData.prodCode, // or whatever field has the product size
-            product: logData.prodCode,
-            variant: logData.variant || null,
-            weight: logData.qty,
-            heads: logData.heads || null,
-        };
-
-        // Clear after 3 seconds (optional)
-        setTimeout(() => {
-            this.activeProduct = null;
-        }, 3000);
-    }
-
-    private handleWeightData(log: any) {
+    private handleWeightData(log: any): void {
         // Clear any existing timeout
         if (this.activeProductTimeout) {
             clearTimeout(this.activeProductTimeout);
         }
 
-        // Set the active product
+        // Update the active product with current data
         this.activeProduct = {
             prodCode: log.prodCode,
             qty: log.qty,
@@ -619,7 +562,9 @@ export class WeighingScaleComponent implements OnInit, OnDestroy {
 
         // Auto-clear after 5 seconds
         this.activeProductTimeout = setTimeout(() => {
-            this.activeProduct = null;
+            if (this.activeProduct && this.activeProduct.prodCode === log.prodCode) {
+                this.activeProduct = null;
+            }
         }, 5000);
     }
 }
