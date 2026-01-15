@@ -1,0 +1,73 @@
+<h2 mat-dialog-title>
+  {{mode === 'add' ? 'Add New Product' : 'Edit Product'}}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="productForm" class="product-form">
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Product Code</mat-label>
+        <input matInput formControlName="productCode" placeholder="e.g., 1.2 CHOICE">
+        <mat-error *ngIf="productForm.get('productCode')?.hasError('required')">
+          Product code is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Individual Weight Range</mat-label>
+        <input matInput formControlName="individualWeightRange" placeholder="e.g., 1.198KG - 1.489KG">
+        <mat-error *ngIf="productForm.get('individualWeightRange')?.hasError('required')">
+          Weight range is required
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Total Weight Range Per Crate</mat-label>
+        <input matInput formControlName="totalWeightRangePerCrate" placeholder="e.g., 18KGS - 22.5 KGS">
+        <mat-error *ngIf="productForm.get('totalWeightRangePerCrate')?.hasError('required')">
+          Crate weight range is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Crates Weight</mat-label>
+        <input matInput formControlName="cratesWeight" placeholder="e.g., 2KGS - 2.3KGS">
+        <mat-error *ngIf="productForm.get('cratesWeight')?.hasError('required')">
+          Crates weight is required
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Number of Heads Per Galantina</mat-label>
+        <input matInput type="number" formControlName="noOfHeadsPerGalantina" min="1">
+        <mat-error *ngIf="productForm.get('noOfHeadsPerGalantina')?.hasError('required')">
+          This field is required
+        </mat-error>
+        <mat-error *ngIf="productForm.get('noOfHeadsPerGalantina')?.hasError('min')">
+          Minimum value is 1
+        </mat-error>
+      </mat-form-field>
+
+      <div class="status-field">
+        <mat-label>Status</mat-label>
+        <mat-slide-toggle formControlName="isActive" color="primary">
+          {{productForm.get('isActive')?.value ? 'Active' : 'Inactive'}}
+        </mat-slide-toggle>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button 
+          color="primary" 
+          (click)="onSubmit()"
+          [disabled]="!productForm.valid">
+    {{mode === 'add' ? 'Add Product' : 'Update Product'}}
+  </button>
+</mat-dialog-actions>
