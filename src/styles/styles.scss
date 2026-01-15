@@ -2,3 +2,16 @@
 /*  @ Import/write your custom styles here.
 /*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
 /* ----------------------------------------------------------------------------------------------------- */
+
+/* Add to your global styles.css or component styles */
+.mat-icon, 
+.heroicons_outline,
+[fuseNavigationIcon] {
+  color: currentColor !important; /* Inherits parent color */
+  fill: currentColor !important;
+}
+
+/* Or specifically target navigation icons */
+fuse-navigation .mat-icon {
+  color: inherit !important;
+}

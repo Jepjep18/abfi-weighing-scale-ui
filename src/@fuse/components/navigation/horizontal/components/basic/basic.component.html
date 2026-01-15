@@ -1,6 +1,6 @@
 <!-- Item wrapper -->
 <div
-    class="fuse-horizontal-navigation-item-wrapper"
+    class="fuse-horizontal-navigation-item-wrapper relative"
     [class.fuse-horizontal-navigation-item-has-subtitle]="!!item.subtitle"
     [ngClass]="item.classes?.wrapper">
 
@@ -87,40 +87,47 @@
 
 <!-- Item template -->
 <ng-template #itemTemplate>
-
-    <!-- Icon -->
-    <ng-container *ngIf="item.icon">
-        <mat-icon
-            class="fuse-horizontal-navigation-item-icon"
-            [ngClass]="item.classes?.icon"
-            [svgIcon]="item.icon"></mat-icon>
-    </ng-container>
-
-    <!-- Title & Subtitle -->
-    <div class="fuse-horizontal-navigation-item-title-wrapper">
-        <div class="fuse-horizontal-navigation-item-title">
-            <span [ngClass]="item.classes?.title">
-                {{item.title}}
-            </span>
-        </div>
-        <ng-container *ngIf="item.subtitle">
-            <div class="fuse-horizontal-navigation-item-subtitle text-hint">
-                <span [ngClass]="item.classes?.subtitle">
-                    {{item.subtitle}}
-                </span>
+    <!-- Main container with icon on top and text below -->
+    <div class="flex flex-col items-center justify-center w-full relative px-3 py-2 min-h-[60px] rounded-lg transition-all duration-200">
+        
+        <!-- Badge (positioned absolutely at top right) -->
+        <ng-container *ngIf="item.badge">
+            <div class="fuse-horizontal-navigation-item-badge absolute top-1 right-1 z-10">
+                <div
+                    class="fuse-horizontal-navigation-item-badge-content bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow-md"
+                    [ngClass]="item.badge.classes">
+                    {{item.badge.title}}
+                </div>
             </div>
         </ng-container>
-    </div>
 
-    <!-- Badge -->
-    <ng-container *ngIf="item.badge">
-        <div class="fuse-horizontal-navigation-item-badge">
-            <div
-                class="fuse-horizontal-navigation-item-badge-content"
-                [ngClass]="item.badge.classes">
-                {{item.badge.title}}
+        <!-- Icon on top -->
+        <ng-container *ngIf="item.icon">
+            <mat-icon
+                class="fuse-horizontal-navigation-item-icon mb-2 text-current"
+                [ngClass]="item.classes?.icon"
+                [svgIcon]="item.icon"></mat-icon>
+        </ng-container>
+
+        <!-- Title & Subtitle container -->
+        <div class="fuse-horizontal-navigation-item-title-wrapper text-center">
+            <div class="fuse-horizontal-navigation-item-title mb-0.5">
+                <span 
+                    [ngClass]="item.classes?.title"
+                    class="text-xs font-semibold leading-tight tracking-tight">
+                    {{item.title}}
+                </span>
             </div>
+            <ng-container *ngIf="item.subtitle">
+                <div class="fuse-horizontal-navigation-item-subtitle text-hint">
+                    <span 
+                        [ngClass]="item.classes?.subtitle"
+                        class="text-[10px] leading-none opacity-75">
+                        {{item.subtitle}}
+                    </span>
+                </div>
+            </ng-container>
         </div>
-    </ng-container>
 
+    </div>
 </ng-template>

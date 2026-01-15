@@ -55,5 +55,34 @@ export const horizontalNavigation: FuseNavigationItem[] = [
         icon: 'heroicons_outline:calendar',
         link: '/booking',
     },
+    {
+        id: 'settings',
+        title: 'Settings',
+        type: 'collapsable',
+        icon: 'heroicons_outline:cog',
+        children: [
+            {
+                id: 'settings.product',
+                title: 'Product Settings',
+                type: 'basic',
+                icon: 'heroicons_outline:cube',
+                link: '/settings',
+            },
+            {
+                id: 'settings.customer',
+                title: 'Customer Settings',
+                type: 'basic',
+                icon: 'heroicons_outline:users',
+                link: '/settings/customer',
+            },
+            {
+                id: 'settings.vehicle',
+                title: 'Vehicle Settings',
+                type: 'basic',
+                icon: 'heroicons_outline:truck',
+                link: '/settings/vehicle',
+            },
+        ],
+    },
 ];
 

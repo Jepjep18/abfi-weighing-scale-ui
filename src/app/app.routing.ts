@@ -158,6 +158,15 @@ export const appRoutes: Route[] = [
                     ),
             },
 
+            //settings
+            {
+                path: 'settings',
+                loadChildren: () =>
+                    import('app/modules/admin/settings/settings.module').then(
+                        (m) => m.SettingsModule
+                    ),
+            }
+
             // Example
             // {
             //     path: 'example',

@@ -4,32 +4,94 @@ fuse-horizontal-navigation {
     .fuse-horizontal-navigation-wrapper {
         display: flex;
         align-items: center;
+        gap: 4px;
 
         /* Basic, Branch */
         fuse-horizontal-navigation-basic-item,
         fuse-horizontal-navigation-branch-item {
 
             @screen sm {
-
                 &:hover {
-
                     .fuse-horizontal-navigation-item-wrapper {
                         @apply bg-hover;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
                     }
                 }
             }
 
             .fuse-horizontal-navigation-item-wrapper {
-                border-radius: 4px;
-                overflow: hidden;
+                border-radius: 8px;
+                overflow: visible;
+                min-height: 70px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                padding: 0 8px;
 
                 .fuse-horizontal-navigation-item {
-                    padding: 0 16px;
+                    padding: 8px 12px;
                     cursor: pointer;
                     user-select: none;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 60px;
+                    min-width: 80px;
+                    text-align: center;
+                    border-radius: 6px;
+                    transition: all 0.2s ease;
 
                     .fuse-horizontal-navigation-item-icon {
-                        margin-right: 12px;
+                        margin-right: 0;
+                        margin-bottom: 6px;
+                        font-size: 20px;
+                        height: 20px;
+                        width: 20px;
+                        transition: all 0.2s ease;
+                    }
+
+                    .fuse-horizontal-navigation-item-title-wrapper {
+                        .fuse-horizontal-navigation-item-title {
+                            font-size: 11px;
+                            line-height: 1.2;
+                            font-weight: 600;
+                            letter-spacing: 0.01em;
+                            white-space: nowrap;
+                        }
+
+                        .fuse-horizontal-navigation-item-subtitle {
+                            font-size: 10px;
+                            line-height: 1.1;
+                            margin-top: 2px;
+                            opacity: 0.8;
+                        }
+                    }
+
+                    .fuse-horizontal-navigation-item-badge {
+                        position: absolute;
+                        top: 4px;
+                        right: 4px;
+                        margin-left: 0;
+                        z-index: 10;
+
+                        .fuse-horizontal-navigation-item-badge-content {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 9px;
+                            font-weight: 700;
+                            white-space: nowrap;
+                            height: 16px;
+                            min-width: 16px;
+                            border-radius: 8px;
+                            padding: 0 4px;
+                            background-color: #EF4444;
+                            color: white;
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                        }
                     }
                 }
             }
@@ -37,36 +99,68 @@ fuse-horizontal-navigation {
 
         /* Basic - When item active (current link) */
         fuse-horizontal-navigation-basic-item {
-
             .fuse-horizontal-navigation-item-active,
             .fuse-horizontal-navigation-item-active-forced {
+                .fuse-horizontal-navigation-item-wrapper {
+                    background-color: rgba(var(--fuse-primary-rgb), 0.12);
+                    border: 1px solid rgba(var(--fuse-primary-rgb), 0.2);
 
-                .fuse-horizontal-navigation-item-title {
-                    @apply text-primary #{'!important'};
-                }
+                    .fuse-horizontal-navigation-item {
+                        .fuse-horizontal-navigation-item-title {
+                            @apply text-primary #{'!important'};
+                            font-weight: 700;
+                        }
 
-                .fuse-horizontal-navigation-item-subtitle {
-                    @apply text-primary-400 #{'!important'};
+                        .fuse-horizontal-navigation-item-subtitle {
+                            @apply text-primary-400 #{'!important'};
 
-                    .dark & {
-                        @apply text-primary-600 #{'!important'};
+                            .dark & {
+                                @apply text-primary-600 #{'!important'};
+                            }
+                        }
+
+                        .fuse-horizontal-navigation-item-icon {
+                            @apply text-primary #{'!important'};
+                            transform: scale(1.1);
+                        }
                     }
-                }
-
-                .fuse-horizontal-navigation-item-icon {
-                    @apply text-primary #{'!important'};
                 }
             }
         }
 
         /* Branch - When menu open */
         fuse-horizontal-navigation-branch-item {
-
             .fuse-horizontal-navigation-menu-active,
             .fuse-horizontal-navigation-menu-active-forced {
-
                 .fuse-horizontal-navigation-item-wrapper {
                     @apply bg-hover;
+
+                    .fuse-horizontal-navigation-item {
+                        .fuse-horizontal-navigation-item-icon {
+                            transform: rotate(180deg);
+                        }
+                    }
+                }
+            }
+
+            /* Chevron indicator for collapsable items */
+            .fuse-horizontal-navigation-item {
+                position: relative;
+                
+                .fuse-horizontal-navigation-item-icon {
+                    transition: transform 0.2s ease;
+                }
+                
+                &:after {
+                    content: '';
+                    position: absolute;
+                    bottom: 2px;
+                    width: 0;
+                    height: 0;
+                    border-left: 4px solid transparent;
+                    border-right: 4px solid transparent;
+                    border-top: 4px solid currentColor;
+                    opacity: 0.7;
                 }
             }
         }
@@ -80,7 +174,6 @@ fuse-horizontal-navigation {
 
 /* Menu panel specific */
 .fuse-horizontal-navigation-menu-panel {
-
     .fuse-horizontal-navigation-menu-item {
         height: auto;
         min-height: 0;
@@ -109,13 +202,10 @@ fuse-horizontal-navigation {
 
 /* Navigation menu item common */
 .fuse-horizontal-navigation-menu-item {
-
     /* Basic - When item active (current link) */
     fuse-horizontal-navigation-basic-item {
-
         .fuse-horizontal-navigation-item-active,
         .fuse-horizontal-navigation-item-active-forced {
-
             .fuse-horizontal-navigation-item-title {
                 @apply text-primary #{'!important'};
             }
@@ -138,7 +228,6 @@ fuse-horizontal-navigation {
         width: 100%;
 
         &.fuse-horizontal-navigation-item-has-subtitle {
-
             .fuse-horizontal-navigation-item {
                 min-height: 56px;
             }
@@ -156,7 +245,6 @@ fuse-horizontal-navigation {
             text-decoration: none;
 
             .fuse-horizontal-navigation-item-title-wrapper {
-
                 .fuse-horizontal-navigation-item-subtitle {
                     font-size: 12px;
                 }
@@ -173,6 +261,88 @@ fuse-horizontal-navigation {
                     font-weight: 600;
                     white-space: nowrap;
                     height: 20px;
+                }
+            }
+        }
+    }
+}
+
+/* Animation for active icons */
+@keyframes icon-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.fuse-horizontal-navigation-item-active {
+    .fuse-horizontal-navigation-item-icon {
+        animation: icon-pulse 2s ease-in-out infinite;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    fuse-horizontal-navigation {
+        .fuse-horizontal-navigation-wrapper {
+            gap: 2px;
+            
+            fuse-horizontal-navigation-basic-item,
+            fuse-horizontal-navigation-branch-item {
+                .fuse-horizontal-navigation-item-wrapper {
+                    padding: 0 4px;
+                    
+                    .fuse-horizontal-navigation-item {
+                        min-width: 70px;
+                        padding: 6px 8px;
+                        
+                        .fuse-horizontal-navigation-item-icon {
+                            font-size: 18px;
+                            height: 18px;
+                            width: 18px;
+                            margin-bottom: 4px;
+                        }
+                        
+                        .fuse-horizontal-navigation-item-title-wrapper {
+                            .fuse-horizontal-navigation-item-title {
+                                font-size: 10px;
+                            }
+                            
+                            .fuse-horizontal-navigation-item-subtitle {
+                                font-size: 9px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* Dark mode adjustments */
+.dark {
+    fuse-horizontal-navigation {
+        .fuse-horizontal-navigation-wrapper {
+            fuse-horizontal-navigation-basic-item,
+            fuse-horizontal-navigation-branch-item {
+                .fuse-horizontal-navigation-item-wrapper {
+                    .fuse-horizontal-navigation-item {
+                        &:hover {
+                            background-color: rgba(255, 255, 255, 0.05);
+                        }
+                    }
+                }
+            }
+            
+            fuse-horizontal-navigation-basic-item {
+                .fuse-horizontal-navigation-item-active,
+                .fuse-horizontal-navigation-item-active-forced {
+                    .fuse-horizontal-navigation-item-wrapper {
+                        background-color: rgba(var(--fuse-primary-rgb), 0.15);
+                        border: 1px solid rgba(var(--fuse-primary-rgb), 0.3);
+                    }
                 }
             }
         }
