@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+// Custom styles for drawer content
+.mat-mdc-button {
+  &.mat-mdc-button-base {
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+// Status filter styles
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+// Statistics card hover effects
+.stat-card {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}

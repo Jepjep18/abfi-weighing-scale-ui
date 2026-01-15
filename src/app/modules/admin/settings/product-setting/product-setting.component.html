@@ -14,8 +14,10 @@
         <!-- Actions -->
         <div class="flex flex-shrink-0 items-center mt-4 sm:mt-0 sm:ml-4 space-x-2">
             <!-- Menu Button -->
-            <button mat-icon-button class="!h-10 !w-10 flex items-center justify-center" (click)="rightDrawer.toggle()"
-                aria-label="Toggle side navigation">
+            <button mat-icon-button 
+                    class="!h-10 !w-10 flex items-center justify-center" 
+                    (click)="rightDrawer.toggle()"
+                    aria-label="Toggle side navigation">
                 <mat-icon class="!w-6 !h-6 text-gray-600 dark:text-gray-400">menu</mat-icon>
             </button>
         </div>
@@ -27,52 +29,12 @@
             <!-- Main Content -->
             <mat-drawer-content class="h-full overflow-auto">
                 <div class="p-6">
-                    <!-- Summary Stats Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <!-- Total Products Card -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="p-3 rounded-lg bg-blue-100 dark:bg-blue-900">
-                                        <mat-icon class="!w-6 !h-6 text-blue-600 dark:text-blue-400">inventory</mat-icon>
-                                    </div>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Products</p>
-                                    <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ totalProducts }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Active Products Card -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="p-3 rounded-lg bg-green-100 dark:bg-green-900">
-                                        <mat-icon class="!w-6 !h-6 text-green-600 dark:text-green-400">check_circle</mat-icon>
-                                    </div>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active Products</p>
-                                    <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ activeProducts }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Inactive Products Card -->
-                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <div class="p-3 rounded-lg bg-red-100 dark:bg-red-900">
-                                        <mat-icon class="!w-6 !h-6 text-red-600 dark:text-red-400">cancel</mat-icon>
-                                    </div>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Inactive Products</p>
-                                    <p class="text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ inactiveProducts }}</p>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- Loading Indicator -->
+                    <div *ngIf="isLoading" class="mb-6">
+                        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">
+                            Loading products...
+                        </p>
                     </div>
 
                     <!-- Products Table Section -->
@@ -104,29 +66,40 @@
                         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                             <mat-form-field appearance="outline" class="w-full">
                                 <mat-label>Search products</mat-label>
-                                <input matInput (keyup)="applyFilter($event)" placeholder="Search by product code, weight range...">
+                                <input matInput 
+                                       [formControl]="searchControl" 
+                                       placeholder="Search by product code, weight range...">
                                 <mat-icon matSuffix>search</mat-icon>
+                                <mat-hint *ngIf="searchControl.value">
+                                    Press Enter or wait to search
+                                </mat-hint>
                             </mat-form-field>
                         </div>
 
-                        <!-- Table -->
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                        <!-- Table Container -->
+                        <div class="overflow-x-auto min-h-[400px]">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800"
+                                   matSort
+                                   (matSortChange)="loadProducts()">
                                 <thead class="bg-gray-50 dark:bg-gray-900/50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                        <th mat-sort-header="productCode"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Product Code
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                        <th mat-sort-header="individualWeightRange"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Weight Range
                                         </th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Crate Weight
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                        <th mat-sort-header="noOfHeadsPerGalantina"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Heads/Galantina
                                         </th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
+                                        <th mat-sort-header="isActive"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-r border-gray-200 dark:border-gray-700">
                                             Status
                                         </th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -137,7 +110,20 @@
 
                                 <!-- Table Body -->
                                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <tr *ngFor="let product of dataSource.filteredData" 
+                                    <!-- Loading State -->
+                                    <tr *ngIf="isLoading && dataSource.data.length === 0">
+                                        <td colspan="6" class="px-6 py-12 text-center bg-white dark:bg-gray-800">
+                                            <div class="flex flex-col items-center justify-center">
+                                                <mat-spinner diameter="40"></mat-spinner>
+                                                <p class="mt-4 text-gray-500 dark:text-gray-400">
+                                                    Loading products...
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Data Rows -->
+                                    <tr *ngFor="let product of dataSource.data" 
                                         class="transition-colors bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                         <!-- Product Code -->
                                         <td class="px-6 py-4 whitespace-nowrap border-r border-gray-200 dark:border-gray-700">
@@ -207,8 +193,8 @@
                                                     <mat-icon class="!w-4 !h-4">delete</mat-icon>
                                                 </button>
                                                 <button mat-icon-button 
-                                                    color="accent" 
-                                                    matTooltip="Toggle Status"
+                                                    [color]="product.isActive ? 'accent' : 'primary'" 
+                                                    matTooltip="{{ product.isActive ? 'Deactivate' : 'Activate' }}"
                                                     (click)="toggleProductStatus(product)"
                                                     class="!h-8 !w-8">
                                                     <mat-icon class="!w-4 !h-4">
@@ -220,7 +206,7 @@
                                     </tr>
 
                                     <!-- Empty State -->
-                                    <tr *ngIf="dataSource.filteredData.length === 0">
+                                    <tr *ngIf="!isLoading && dataSource.data.length === 0">
                                         <td colspan="6" class="px-6 py-12 text-center bg-white dark:bg-gray-800">
                                             <div class="flex flex-col items-center justify-center">
                                                 <mat-icon class="text-gray-400 dark:text-gray-500 mb-3"
@@ -231,9 +217,12 @@
                                                     No products found
                                                 </h3>
                                                 <p class="text-gray-500 dark:text-gray-400 mb-4">
-                                                    Add your first product to get started
+                                                    {{ searchControl.value ? 'Try adjusting your search criteria' : 'Add your first product to get started' }}
                                                 </p>
-                                                <button mat-flat-button color="primary" (click)="openAddDialog()">
+                                                <button mat-flat-button 
+                                                        color="primary" 
+                                                        (click)="openAddDialog()"
+                                                        *ngIf="!searchControl.value">
                                                     <mat-icon class="mr-2">add</mat-icon>
                                                     Add Product
                                                 </button>
@@ -245,7 +234,7 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div *ngIf="totalPages > 1 && dataSource.filteredData.length > 0"
+                        <div *ngIf="totalPages > 1 && dataSource.data.length > 0 && !isLoading"
                             class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                                 <!-- Page Info -->
@@ -262,22 +251,25 @@
                                 <!-- Pagination Controls -->
                                 <nav class="flex items-center space-x-1">
                                     <!-- Previous Button -->
-                                    <button mat-icon-button [disabled]="currentPage === 1" 
-                                        (click)="onPageChange(currentPage - 1)" 
-                                        class="!h-9 !w-9" 
-                                        matTooltip="Previous page">
+                                    <button mat-icon-button 
+                                            [disabled]="currentPage === 1 || isLoading" 
+                                            (click)="onPageChange(currentPage - 1)" 
+                                            class="!h-9 !w-9" 
+                                            matTooltip="Previous page">
                                         <mat-icon class="!w-4 !h-4">chevron_left</mat-icon>
                                     </button>
 
                                     <!-- Page Numbers -->
                                     <ng-container *ngFor="let page of getPages()">
-                                        <button *ngIf="page !== '...'" mat-icon-button
-                                            [class.bg-primary-50]="page === currentPage"
-                                            [class.text-primary-600]="page === currentPage"
-                                            [class.dark:bg-primary-900]="page === currentPage"
-                                            [class.dark:text-primary-200]="page === currentPage"
-                                            (click)="onPageChange(page)"
-                                            class="!h-9 !w-9">
+                                        <button *ngIf="page !== '...'" 
+                                                mat-icon-button
+                                                [disabled]="isLoading"
+                                                [class.bg-primary-50]="page === currentPage"
+                                                [class.text-primary-600]="page === currentPage"
+                                                [class.dark:bg-primary-900]="page === currentPage"
+                                                [class.dark:text-primary-200]="page === currentPage"
+                                                (click)="onPageChange(page)"
+                                                class="!h-9 !w-9">
                                             {{ page }}
                                         </button>
                                         <span *ngIf="page === '...'"
@@ -287,10 +279,11 @@
                                     </ng-container>
 
                                     <!-- Next Button -->
-                                    <button mat-icon-button [disabled]="currentPage === totalPages" 
-                                        (click)="onPageChange(currentPage + 1)" 
-                                        class="!h-9 !w-9" 
-                                        matTooltip="Next page">
+                                    <button mat-icon-button 
+                                            [disabled]="currentPage === totalPages || isLoading" 
+                                            (click)="onPageChange(currentPage + 1)" 
+                                            class="!h-9 !w-9" 
+                                            matTooltip="Next page">
                                         <mat-icon class="!w-4 !h-4">chevron_right</mat-icon>
                                     </button>
                                 </nav>
@@ -302,61 +295,14 @@
 
             <!-- Right Side Drawer -->
             <mat-drawer #rightDrawer position="end" mode="over" class="w-80">
-                <div class="h-full flex flex-col bg-white dark:bg-gray-800">
-                    <!-- Drawer Header -->
-                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Product Settings</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Quick actions & filters</p>
-                    </div>
-                    
-                    <!-- Drawer Content -->
-                    <div class="flex-1 overflow-auto p-6">
-                        <!-- Quick Actions -->
-                        <div class="space-y-4">
-                            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">Quick Actions</h4>
-                            <button mat-flat-button color="primary" class="w-full justify-start" (click)="openAddDialog()">
-                                <mat-icon class="mr-2">add</mat-icon>
-                                Add New Product
-                            </button>
-                            <button mat-stroked-button class="w-full justify-start">
-                                <mat-icon class="mr-2">file_download</mat-icon>
-                                Export Products
-                            </button>
-                            <button mat-stroked-button class="w-full justify-start">
-                                <mat-icon class="mr-2">file_upload</mat-icon>
-                                Import Products
-                            </button>
-                        </div>
-
-                        <!-- Filters -->
-                        <div class="space-y-4 mt-8">
-                            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">Filters</h4>
-                            <mat-form-field appearance="outline" class="w-full">
-                                <mat-label>Status</mat-label>
-                                <mat-select>
-                                    <mat-option value="all">All Status</mat-option>
-                                    <mat-option value="active">Active Only</mat-option>
-                                    <mat-option value="inactive">Inactive Only</mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-
-                        <!-- Statistics -->
-                        <div class="space-y-4 mt-8">
-                            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100">Statistics</h4>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Total</div>
-                                    <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ totalProducts }}</div>
-                                </div>
-                                <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Active</div>
-                                    <div class="text-lg font-semibold text-green-600 dark:text-green-400">{{ activeProducts }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Drawer Content Component -->
+                <app-product-drawer 
+                    [totalProducts]="totalProducts"
+                    [activeProducts]="activeProducts"
+                    (addProduct)="openAddDialog()"
+                    (exportProducts)="onExportProducts()"
+                    (importProducts)="onImportProducts()">
+                </app-product-drawer>
             </mat-drawer>
         </mat-drawer-container>
     </div>

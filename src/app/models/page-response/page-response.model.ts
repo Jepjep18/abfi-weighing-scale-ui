@@ -7,3 +7,9 @@ export interface PagedResponse<T> {
   hasNext: boolean;
   items: T[];
 }
+
+export interface PagedRequest {
+  page: number;
+  size: number;
+  search?: string;
+}

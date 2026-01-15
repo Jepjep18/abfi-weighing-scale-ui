@@ -1,30 +1,24 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDrawer } from '@angular/material/sidenav';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators'; // Import from operators
 import { ProductDialogComponent } from './product-dialog/product-dialog.component';
-
-export interface Product {
-  id: number;
-  productCode: string;
-  individualWeightRange: string;
-  totalWeightRangePerCrate: string;
-  noOfHeadsPerGalantina: number;
-  cratesWeight: string;
-  isActive: boolean;
-  createdAt: string;
-  lastUpdatedAt: string | null;
-}
+import { ProductClassificationService } from 'app/services/product-classification/product-classification.service';
+import { ProductClassificationDto } from 'app/models/product-classification/product-classification.model';
+import { PagedResponse } from 'app/models/page-response/page-response.model';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-product-setting',
   templateUrl: './product-setting.component.html',
   styleUrls: ['./product-setting.component.scss']
 })
-export class ProductSettingComponent implements OnInit, AfterViewInit {
+export class ProductSettingComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = [
     'productCode',
     'individualWeightRange',
@@ -35,177 +29,159 @@ export class ProductSettingComponent implements OnInit, AfterViewInit {
     'actions'
   ];
   
-  dataSource: MatTableDataSource<Product>;
+  dataSource: MatTableDataSource<ProductClassificationDto> = new MatTableDataSource<ProductClassificationDto>([]);
   
   // Pagination properties
   currentPage: number = 1;
-  totalPages: number = 4;
+  totalPages: number = 1;
   pageSize: number = 10;
-  totalCount: number = 40;
+  totalCount: number = 0;
   hasPrevious: boolean = false;
-  hasNext: boolean = true;
+  hasNext: boolean = false;
   
   // Summary statistics
   totalProducts: number = 0;
   activeProducts: number = 0;
   inactiveProducts: number = 0;
   
+  // Loading state
+  isLoading: boolean = false;
+  
+  // Search control
+  searchControl = new FormControl('');
+  
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild('rightDrawer') rightDrawer!: MatDrawer;
   
-  // Mock data based on your JSON
-  mockProducts: Product[] = [
-    {
-      "id": 5,
-      "productCode": "1.2 CHOICE",
-      "individualWeightRange": "1.198KG - 1.489KG",
-      "totalWeightRangePerCrate": "18KGS - 22.5 KGS",
-      "noOfHeadsPerGalantina": 15,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 6,
-      "productCode": "1.2 FARMERS",
-      "individualWeightRange": "1.198KG - 1.489KG",
-      "totalWeightRangePerCrate": "18KGS - 22.5 KGS",
-      "noOfHeadsPerGalantina": 15,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 4,
-      "productCode": "1.2 LB",
-      "individualWeightRange": "1.198KG - 1.489KG",
-      "totalWeightRangePerCrate": "18KGS - 22.5 KGS",
-      "noOfHeadsPerGalantina": 15,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 7,
-      "productCode": "1.2 PLAIN POLY",
-      "individualWeightRange": "1.198KG - 1.489KG",
-      "totalWeightRangePerCrate": "18KGS - 22.5 KGS",
-      "noOfHeadsPerGalantina": 15,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 3,
-      "productCode": "1.5 FARMERS",
-      "individualWeightRange": "1.49KG -UP",
-      "totalWeightRangePerCrate": "14.9 UP",
-      "noOfHeadsPerGalantina": 10,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 1,
-      "productCode": "1.5 LB",
-      "individualWeightRange": "1.49KG -UP",
-      "totalWeightRangePerCrate": "14.9 UP",
-      "noOfHeadsPerGalantina": 10,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 2,
-      "productCode": "1.5 PLAIN POLY",
-      "individualWeightRange": "1.49KG -UP",
-      "totalWeightRangePerCrate": "14.9KGS - UP",
-      "noOfHeadsPerGalantina": 10,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 9,
-      "productCode": "1-1.1 CHOICE",
-      "individualWeightRange": "1.070KGS - 1.197KGS",
-      "totalWeightRangePerCrate": "15.8KGS - 17.8KGS",
-      "noOfHeadsPerGalantina": 15,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 10,
-      "productCode": "1-1.1 FARMERS",
-      "individualWeightRange": "1.070KGS - 1.197KGS",
-      "totalWeightRangePerCrate": "15.8KGS - 17.8KGS",
-      "noOfHeadsPerGalantina": 15,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    },
-    {
-      "id": 8,
-      "productCode": "1-1.1 LB",
-      "individualWeightRange": "1.070KGS - 1.197KGS",
-      "totalWeightRangePerCrate": "15.8KGS - 17.8KGS",
-      "noOfHeadsPerGalantina": 15,
-      "cratesWeight": "2KGS - 2.3KGS",
-      "isActive": true,
-      "createdAt": "2024-01-15T08:30:00",
-      "lastUpdatedAt": null
-    }
-  ];
+  private destroy$ = new Subject<void>();
+  private searchSubject = new Subject<string>();
 
   constructor(
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
-  ) {
-    this.dataSource = new MatTableDataSource(this.mockProducts);
-    this.calculateSummaryStatistics();
-  }
+    private snackBar: MatSnackBar,
+    private productService: ProductClassificationService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.setupSearch();
+    this.loadProducts();
+  }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
   }
 
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.searchSubject.complete();
   }
 
+  /**
+   * Setup search with debounce
+   */
+  private setupSearch(): void {
+    this.searchSubject.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(searchTerm => {
+      this.currentPage = 1;
+      this.loadProducts();
+    });
+
+    this.searchControl.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        this.searchSubject.next(value || '');
+      });
+  }
+
+  /**
+   * Load products from API
+   */
+  loadProducts(): void {
+    this.isLoading = true;
+    
+    this.productService.getPaged({
+      page: this.currentPage,
+      size: this.pageSize,
+      search: this.searchControl.value || '',
+      sortBy: this.sort?.active || 'productCode',
+      sortDirection: this.sort?.direction === 'desc' ? 'desc' : 'asc'
+    }).pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: PagedResponse<ProductClassificationDto>) => {
+          this.handleSuccessResponse(response);
+        },
+        error: (error) => {
+          this.handleError('Failed to load products', error);
+        }
+      });
+  }
+
+  /**
+   * Handle successful API response
+   */
+  private handleSuccessResponse(response: PagedResponse<ProductClassificationDto>): void {
+    this.dataSource.data = response.items;
+    this.currentPage = response.currentPage;
+    this.totalPages = response.totalPages;
+    this.pageSize = response.pageSize;
+    this.totalCount = response.totalCount;
+    this.hasPrevious = response.hasPrevious;
+    this.hasNext = response.hasNext;
+    
+    this.calculateSummaryStatistics();
+    this.isLoading = false;
+  }
+
+  /**
+   * Handle API errors
+   */
+  private handleError(message: string, error: any): void {
+    console.error(message, error);
+    this.showSnackBar(`${message}: ${error.message || 'Unknown error'}`);
+    this.isLoading = false;
+  }
+
+  /**
+   * Calculate summary statistics from current data
+   */
   calculateSummaryStatistics(): void {
-    this.totalProducts = this.mockProducts.length;
-    this.activeProducts = this.mockProducts.filter(p => p.isActive).length;
+    const items = this.dataSource.data;
+    this.totalProducts = items.length;
+    this.activeProducts = items.filter(p => p.isActive).length;
     this.inactiveProducts = this.totalProducts - this.activeProducts;
   }
 
-  getShowingFrom(): number {
-    return (this.currentPage - 1) * this.pageSize + 1;
+  /**
+   * Apply filter for client-side filtering (if needed)
+   */
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.searchControl.setValue(filterValue);
   }
 
+  /**
+   * Calculate showing from value
+   */
+  getShowingFrom(): number {
+    return Math.min((this.currentPage - 1) * this.pageSize + 1, this.totalCount);
+  }
+
+  /**
+   * Calculate showing to value
+   */
   getShowingTo(): number {
     return Math.min(this.currentPage * this.pageSize, this.totalCount);
   }
 
+  /**
+   * Generate pagination pages array
+   */
   getPages(): (number | string)[] {
     const pages: (number | string)[] = [];
     const maxVisible = 5;
@@ -238,87 +214,159 @@ export class ProductSettingComponent implements OnInit, AfterViewInit {
     return pages;
   }
 
+  /**
+   * Handle page change
+   */
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
       this.currentPage = page;
-      // In a real app, you would fetch data for this page
-      this.showSnackBar(`Loading page ${page}...`);
+      this.loadProducts();
     }
   }
 
+  /**
+   * Open add product dialog
+   */
   openAddDialog(): void {
     const dialogRef = this.dialog.open(ProductDialogComponent, {
-      width: '600px',
+      width: '400px',
       data: { mode: 'add' }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        const newProduct: Product = {
-          ...result,
-          id: this.mockProducts.length + 1,
-          createdAt: new Date().toISOString(),
-          lastUpdatedAt: null
-        };
-        
-        this.mockProducts.unshift(newProduct);
-        this.dataSource.data = [...this.mockProducts];
-        this.calculateSummaryStatistics();
-        this.totalCount = this.mockProducts.length;
-        this.showSnackBar('Product added successfully!');
-      }
-    });
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        if (result) {
+          this.createProduct(result);
+        }
+      });
   }
 
-  openEditDialog(product: Product): void {
+  /**
+   * Create new product
+   */
+  private createProduct(productData: any): void {
+    this.productService.create(productData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSnackBar('Product added successfully!');
+          this.loadProducts();
+        },
+        error: (error) => {
+          this.handleError('Failed to add product', error);
+        }
+      });
+  }
+
+  /**
+   * Open edit product dialog
+   */
+  openEditDialog(product: ProductClassificationDto): void {
     const dialogRef = this.dialog.open(ProductDialogComponent, {
       width: '600px',
       data: { mode: 'edit', product: { ...product } }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        const index = this.mockProducts.findIndex(p => p.id === product.id);
-        if (index !== -1) {
-          this.mockProducts[index] = {
-            ...result,
-            id: product.id,
-            lastUpdatedAt: new Date().toISOString()
-          };
-          this.dataSource.data = [...this.mockProducts];
-          this.calculateSummaryStatistics();
-          this.showSnackBar('Product updated successfully!');
+    dialogRef.afterClosed()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(result => {
+        if (result) {
+          this.updateProduct(product.id, result);
         }
-      }
-    });
+      });
   }
 
-  deleteProduct(product: Product): void {
+  /**
+   * Update existing product
+   */
+  private updateProduct(id: number, productData: any): void {
+    this.productService.update(id, productData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showSnackBar('Product updated successfully!');
+          this.loadProducts();
+        },
+        error: (error) => {
+          this.handleError('Failed to update product', error);
+        }
+      });
+  }
+
+  /**
+   * Delete product
+   */
+  deleteProduct(product: ProductClassificationDto): void {
     if (confirm(`Are you sure you want to delete "${product.productCode}"?`)) {
-      const index = this.mockProducts.findIndex(p => p.id === product.id);
-      if (index !== -1) {
-        this.mockProducts.splice(index, 1);
-        this.dataSource.data = [...this.mockProducts];
-        this.calculateSummaryStatistics();
-        this.totalCount = this.mockProducts.length;
-        this.showSnackBar('Product deleted successfully!');
-      }
+      this.productService.delete(product.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.showSnackBar('Product deleted successfully!');
+            this.loadProducts();
+          },
+          error: (error) => {
+            this.handleError('Failed to delete product', error);
+          }
+        });
     }
   }
 
-  toggleProductStatus(product: Product): void {
-    product.isActive = !product.isActive;
-    product.lastUpdatedAt = new Date().toISOString();
-    this.dataSource.data = [...this.mockProducts];
-    this.calculateSummaryStatistics();
-    this.showSnackBar(`Product ${product.isActive ? 'activated' : 'deactivated'}!`);
+  /**
+   * Toggle product status
+   */
+  toggleProductStatus(product: ProductClassificationDto): void {
+    const newStatus = !product.isActive;
+    const statusText = newStatus ? 'activate' : 'deactivate';
+    
+    if (confirm(`Are you sure you want to ${statusText} "${product.productCode}"?`)) {
+      this.productService.updateStatus(product.id, newStatus)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.showSnackBar(`Product ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+            this.loadProducts();
+          },
+          error: (error) => {
+            this.handleError(`Failed to ${statusText} product`, error);
+          }
+        });
+    }
   }
 
+  /**
+   * Export products
+   */
+  onExportProducts(): void {
+    this.showSnackBar('Export functionality coming soon!');
+    // TODO: Implement export when backend is ready
+    // this.productService.exportToCsv().subscribe(...);
+  }
+
+  /**
+   * Import products
+   */
+  onImportProducts(): void {
+    this.showSnackBar('Import functionality coming soon!');
+  }
+
+  /**
+   * Show snackbar notification
+   */
   private showSnackBar(message: string): void {
     this.snackBar.open(message, 'Close', {
       duration: 3000,
       horizontalPosition: 'right',
-      verticalPosition: 'top'
+      verticalPosition: 'top',
+      panelClass: ['snackbar-success']
     });
+  }
+
+  /**
+   * Refresh data
+   */
+  refresh(): void {
+    this.loadProducts();
   }
 }

@@ -23,6 +23,7 @@ import { MatMenuModule } from '@angular/material/menu';
 // Components
 import { ProductSettingComponent } from './product-setting/product-setting.component';
 import { ProductDialogComponent } from './product-setting/product-dialog/product-dialog.component';
+import { ProductDrawerComponent } from './product-setting/product-drawer/product-drawer.component';
 
 const routes: Routes = [
   {
@@ -34,7 +35,8 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     ProductSettingComponent,
-    ProductDialogComponent
+    ProductDialogComponent,
+    ProductDrawerComponent
   ],
   imports: [
     CommonModule,
